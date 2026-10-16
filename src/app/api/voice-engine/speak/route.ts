@@ -16,139 +16,139 @@ interface VoicePersonaConfig {
   rateOffset: number;
 }
 
-// Distinct voice persona profiles tuned for authentic industry presence
+// Distinct voice persona profiles tuned for crisp, natural, professional acoustics (no heavy bass drop)
 const VOICE_PERSONAS: Record<string, VoicePersonaConfig> = {
   // Arjun (Fast, authoritative Indian male logistics coordinator)
   "arjun-sonic-35": {
     voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -16,
-    rateOffset: 6,
+    pitchOffset: 0,
+    rateOffset: 3,
   },
   // Kabir (Calm corporate wealth & banking manager - smooth, prestigious baritone)
   "kabir-sonic-35": {
     voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "en-US-AndrewMultilingualNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -38,
-    rateOffset: -6,
+    pitchOffset: -3,
+    rateOffset: -2,
   },
   // Ishaan (Youthful, energetic NDR delivery reschedule)
   "ishaan-sonic-35": {
     voiceMap: { en: "en-US-BrianMultilingualNeural", "en-in": "en-US-BrianMultilingualNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -8,
-    rateOffset: 8,
+    pitchOffset: 0,
+    rateOffset: 4,
   },
   // Dev (Warm conversational executive companion)
   "openai-dev-echo": {
     voiceMap: { en: "en-US-GuyNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -26,
+    pitchOffset: -2,
     rateOffset: 0,
   },
   // Aarav (Fintech loan sales lead qualifier)
   "aarav-elevenlabs": {
     voiceMap: { en: "en-US-BrianMultilingualNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -12,
-    rateOffset: 10,
+    pitchOffset: 0,
+    rateOffset: 3,
   },
   // Rohan (Senior executive search consultant)
   "rohan-elevenlabs": {
     voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -32,
-    rateOffset: -3,
+    pitchOffset: -3,
+    rateOffset: -1,
   },
   // Aditya (Banking KYC & security compliance)
   "google-aditya-neural2": {
     voiceMap: { en: "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -28,
-    rateOffset: 2,
+    pitchOffset: -2,
+    rateOffset: 1,
   },
   // Vikram (Logistics fleet coordinator)
   "google-vikram-wavenet": {
     voiceMap: { en: "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -22,
-    rateOffset: 5,
+    pitchOffset: -1,
+    rateOffset: 2,
   },
   // Arvind (COD Order verification)
   "sarvam-arvind-bulbul": {
     voiceMap: { en: "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -16,
-    rateOffset: 3,
+    pitchOffset: 0,
+    rateOffset: 2,
   },
   // Rajesh (Operations delivery support)
   "sarvam-rajesh-bulbul": {
     voiceMap: { en: "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -34,
-    rateOffset: -2,
+    pitchOffset: -2,
+    rateOffset: 0,
   },
   // Sanjay (Deep leadership onyx)
   "openai-sanjay-onyx": {
     voiceMap: { en: "en-US-ChristopherNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -48,
-    rateOffset: -6,
+    pitchOffset: -4,
+    rateOffset: -2,
   },
   // Riya (Cheerful, upbeat customer care)
   "riya-sonic-35": {
     voiceMap: { en: "en-IN-NeerjaExpressiveNeural", "en-in": "en-IN-NeerjaExpressiveNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 18,
-    rateOffset: 8,
+    pitchOffset: 2,
+    rateOffset: 3,
   },
   // Ananya (Warm student admissions counselor)
   "ananya-sonic-35": {
     voiceMap: { en: "en-US-AvaMultilingualNeural", "en-in": "en-US-AvaMultilingualNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 4,
-    rateOffset: -2,
+    pitchOffset: 1,
+    rateOffset: 0,
   },
   // Shreya (Calm, soothing clinic receptionist)
   "shreya-sonic-35": {
     voiceMap: { en: "en-US-EmmaMultilingualNeural", "en-in": "en-US-EmmaMultilingualNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: -14,
-    rateOffset: -6,
+    pitchOffset: 0,
+    rateOffset: -2,
   },
   // Pooja (Vibrant promotional sales)
   "pooja-elevenlabs": {
     voiceMap: { en: "en-IN-NeerjaExpressiveNeural", "en-in": "en-IN-NeerjaExpressiveNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 24,
-    rateOffset: 10,
+    pitchOffset: 3,
+    rateOffset: 4,
   },
   // Aditi (Compassionate patient care)
   "aditi-elevenlabs": {
     voiceMap: { en: "en-IN-NeerjaNeural", "en-in": "en-IN-NeerjaNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: -4,
-    rateOffset: -4,
+    pitchOffset: 0,
+    rateOffset: -1,
   },
   // Priya (EMI reminder)
   "google-priya-neural2": {
     voiceMap: { hi: "hi-IN-SwaraNeural" },
-    pitchOffset: -10,
-    rateOffset: -8,
+    pitchOffset: 0,
+    rateOffset: -1,
   },
   // Sneha (Wellness desk)
   "google-sneha-wavenet": {
     voiceMap: { en: "en-IN-NeerjaNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 10,
-    rateOffset: 4,
+    pitchOffset: 1,
+    rateOffset: 1,
   },
   // Kavya (Employee onboarding)
   "sarvam-kavya-bulbul": {
     voiceMap: { hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 12,
-    rateOffset: 5,
+    pitchOffset: 1,
+    rateOffset: 2,
   },
   // Meera (Edtech course advisor)
   "sarvam-meera-bulbul": {
     voiceMap: { hi: "hi-IN-SwaraNeural" },
-    pitchOffset: -4,
-    rateOffset: -2,
+    pitchOffset: 1,
+    rateOffset: 0,
   },
   // Neha (Customer care)
   "openai-neha-alloy": {
     voiceMap: { hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 8,
-    rateOffset: 4,
+    pitchOffset: 1,
+    rateOffset: 2,
   },
   // Sanya (Financial advisory)
   "openai-sanya-coral": {
-    voiceMap: { en: "en-US-AvaMultilingualNeural", "en-in": "en-US-AvaMultilingualNeural", hi: "en-US-AvaMultilingualNeural" },
+    voiceMap: { en: "en-US-AvaMultilingualNeural", "en-in": "en-US-AvaMultilingualNeural", hi: "hi-IN-SwaraNeural" },
     pitchOffset: 0,
-    rateOffset: -2,
+    rateOffset: -1,
   },
 };
 
@@ -324,15 +324,15 @@ export async function GET(req: NextRequest) {
     const personaSlug = dbVoice?.slug || slug;
     const persona = VOICE_PERSONAS[personaSlug] || {};
 
-    const basePitchOffset = persona.pitchOffset ?? (isMale ? -25 : 0);
+    const basePitchOffset = persona.pitchOffset ?? 0;
     const baseRateOffset = persona.rateOffset ?? 0;
 
-    // Speed and pitch modulation directly from matchedTone row in database
+    // Speed and pitch modulation directly from matchedTone row in database (natural, crystal-clear ranges)
     const dbRateMod = Math.round((audioRate - 1.0) * 100);
     const dbPitchMod = Math.round((audioPitch - 1.0) * 100);
 
-    const finalRate = Math.max(-25, Math.min(25, baseRateOffset + dbRateMod));
-    const finalPitch = Math.max(-50, Math.min(50, basePitchOffset + dbPitchMod));
+    const finalRate = Math.max(-10, Math.min(15, baseRateOffset + dbRateMod));
+    const finalPitch = Math.max(-6, Math.min(6, basePitchOffset + dbPitchMod));
 
     const rateArg = finalRate >= 0 ? `+${finalRate}%` : `${finalRate}%`;
     const pitchArg = finalPitch >= 0 ? `+${finalPitch}Hz` : `${finalPitch}Hz`;
@@ -469,7 +469,7 @@ export async function GET(req: NextRequest) {
               "--rate",
               rateArg,
               "--pitch",
-              "-25Hz",
+              pitchArg,
               "--text",
               spokenScript,
               "--write-media",
