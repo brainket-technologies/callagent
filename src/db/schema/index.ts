@@ -118,6 +118,8 @@ export const systemTones = pgTable("system_tones", {
   industry: varchar("industry", { length: 100 }),
   description: text("description"),
   promptInstruction: text("prompt_instruction"),
+  sampleText: text("sample_text"),
+  sampleTextEn: text("sample_text_en"),
   icon: varchar("icon", { length: 50 }).default("💼"),
   audioRate: varchar("audio_rate", { length: 20 }).default("1.00"),
   audioPitch: varchar("audio_pitch", { length: 20 }).default("1.00"),

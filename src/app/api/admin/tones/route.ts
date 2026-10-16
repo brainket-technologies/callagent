@@ -19,6 +19,8 @@ export async function GET() {
         industry: r.industry || "General",
         description: r.description || "",
         promptInstruction: r.promptInstruction || "",
+        sampleText: r.sampleText || "",
+        sampleTextEn: r.sampleTextEn || "",
         icon: r.icon || "💼",
         audioRate: r.audioRate || "1.00",
         audioPitch: r.audioPitch || "1.00",
@@ -41,7 +43,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action, id, key, name, industry, description, promptInstruction, icon, audioRate, audioPitch, isDefault, isEnabled, sortOrder } = body;
+    const { action, id, key, name, industry, description, promptInstruction, sampleText, sampleTextEn, icon, audioRate, audioPitch, isDefault, isEnabled, sortOrder } = body;
 
     // 1. ACTION: TOGGLE
     if (action === "toggle") {
@@ -118,6 +120,8 @@ export async function POST(req: NextRequest) {
           industry: industry?.trim() || "General",
           description: description?.trim() || "",
           promptInstruction: promptInstruction?.trim() || "",
+          sampleText: sampleText?.trim() || null,
+          sampleTextEn: sampleTextEn?.trim() || null,
           icon: icon?.trim() || "💼",
           audioRate: audioRate?.trim() || "1.00",
           audioPitch: audioPitch?.trim() || "1.00",
@@ -151,6 +155,8 @@ export async function POST(req: NextRequest) {
           industry: industry !== undefined ? industry?.trim() : undefined,
           description: description?.trim(),
           promptInstruction: promptInstruction?.trim(),
+          sampleText: sampleText !== undefined ? sampleText?.trim() : undefined,
+          sampleTextEn: sampleTextEn !== undefined ? sampleTextEn?.trim() : undefined,
           icon: icon?.trim(),
           audioRate: audioRate !== undefined ? String(audioRate).trim() : undefined,
           audioPitch: audioPitch !== undefined ? String(audioPitch).trim() : undefined,

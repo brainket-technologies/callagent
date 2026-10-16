@@ -16,24 +16,25 @@ interface VoicePersonaConfig {
   rateOffset: number;
 }
 
+// Distinct voice persona profiles tuned for authentic industry presence
 const VOICE_PERSONAS: Record<string, VoicePersonaConfig> = {
   // Arjun (Fast, authoritative Indian male logistics coordinator)
   "arjun-sonic-35": {
     voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -18,
-    rateOffset: 8,
+    pitchOffset: -16,
+    rateOffset: 6,
   },
   // Kabir (Calm corporate wealth & banking manager - smooth, prestigious baritone)
   "kabir-sonic-35": {
-    voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "en-US-AndrewMultilingualNeural", hi: "en-US-AndrewMultilingualNeural" },
-    pitchOffset: -36,
-    rateOffset: -4,
+    voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "en-US-AndrewMultilingualNeural", hi: "hi-IN-MadhurNeural" },
+    pitchOffset: -38,
+    rateOffset: -6,
   },
   // Ishaan (Youthful, energetic NDR delivery reschedule)
   "ishaan-sonic-35": {
-    voiceMap: { en: "en-US-BrianMultilingualNeural", "en-in": "en-US-BrianMultilingualNeural", hi: "en-US-BrianMultilingualNeural" },
+    voiceMap: { en: "en-US-BrianMultilingualNeural", "en-in": "en-US-BrianMultilingualNeural", hi: "hi-IN-MadhurNeural" },
     pitchOffset: -8,
-    rateOffset: 6,
+    rateOffset: 8,
   },
   // Dev (Warm conversational executive companion)
   "openai-dev-echo": {
@@ -45,13 +46,13 @@ const VOICE_PERSONAS: Record<string, VoicePersonaConfig> = {
   "aarav-elevenlabs": {
     voiceMap: { en: "en-US-BrianMultilingualNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
     pitchOffset: -12,
-    rateOffset: 12,
+    rateOffset: 10,
   },
   // Rohan (Senior executive search consultant)
   "rohan-elevenlabs": {
     voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
     pitchOffset: -32,
-    rateOffset: -2,
+    rateOffset: -3,
   },
   // Aditya (Banking KYC & security compliance)
   "google-aditya-neural2": {
@@ -75,43 +76,43 @@ const VOICE_PERSONAS: Record<string, VoicePersonaConfig> = {
   "sarvam-rajesh-bulbul": {
     voiceMap: { en: "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
     pitchOffset: -34,
-    rateOffset: -3,
+    rateOffset: -2,
   },
   // Sanjay (Deep leadership onyx)
   "openai-sanjay-onyx": {
     voiceMap: { en: "en-US-ChristopherNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -45,
-    rateOffset: -5,
+    pitchOffset: -48,
+    rateOffset: -6,
   },
   // Riya (Cheerful, upbeat customer care)
   "riya-sonic-35": {
     voiceMap: { en: "en-IN-NeerjaExpressiveNeural", "en-in": "en-IN-NeerjaExpressiveNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 16,
+    pitchOffset: 18,
     rateOffset: 8,
   },
   // Ananya (Warm student admissions counselor)
   "ananya-sonic-35": {
-    voiceMap: { en: "en-US-AvaMultilingualNeural", "en-in": "en-US-AvaMultilingualNeural", hi: "en-US-AvaMultilingualNeural" },
-    pitchOffset: -6,
-    rateOffset: -5,
+    voiceMap: { en: "en-US-AvaMultilingualNeural", "en-in": "en-US-AvaMultilingualNeural", hi: "hi-IN-SwaraNeural" },
+    pitchOffset: 4,
+    rateOffset: -2,
   },
   // Shreya (Calm, soothing clinic receptionist)
   "shreya-sonic-35": {
-    voiceMap: { en: "en-US-EmmaMultilingualNeural", "en-in": "en-US-EmmaMultilingualNeural", hi: "en-US-EmmaMultilingualNeural" },
+    voiceMap: { en: "en-US-EmmaMultilingualNeural", "en-in": "en-US-EmmaMultilingualNeural", hi: "hi-IN-SwaraNeural" },
     pitchOffset: -14,
-    rateOffset: -7,
+    rateOffset: -6,
   },
   // Pooja (Vibrant promotional sales)
   "pooja-elevenlabs": {
     voiceMap: { en: "en-IN-NeerjaExpressiveNeural", "en-in": "en-IN-NeerjaExpressiveNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 22,
+    pitchOffset: 24,
     rateOffset: 10,
   },
   // Aditi (Compassionate patient care)
   "aditi-elevenlabs": {
     voiceMap: { en: "en-IN-NeerjaNeural", "en-in": "en-IN-NeerjaNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 4,
-    rateOffset: 0,
+    pitchOffset: -4,
+    rateOffset: -4,
   },
   // Priya (EMI reminder)
   "google-priya-neural2": {
@@ -336,9 +337,27 @@ export async function GET(req: NextRequest) {
     const rateArg = finalRate >= 0 ? `+${finalRate}%` : `${finalRate}%`;
     const pitchArg = finalPitch >= 0 ? `+${finalPitch}Hz` : `${finalPitch}Hz`;
 
-    // 4. Resolve Spoken Script directly from DB (system_languages table)
-    if (!text || text.trim().length === 0) {
-      text = matchedLang?.sampleText || `Hello, I am ${name}. How may I help you today?`;
+    // 4. Resolve Spoken Script directly from DB (system_tones table attached to the voice)
+    const isOldGenericHindi =
+      text.includes("व्यावसायिक कॉल्स को आसानी से संभालने के लिए मैं तैयार हूँ") ||
+      text.includes("vyavasayik calls ko asani se sambhalne");
+    const isOldGenericEnglish =
+      text.includes("ready to handle your business communications with ease") ||
+      text.includes("ready to handle your business calls with ease");
+
+    if (!text || text.trim().length === 0 || isOldGenericHindi || isOldGenericEnglish) {
+      if (isEnglish) {
+        text =
+          matchedTone?.sampleTextEn ||
+          matchedTone?.sampleText ||
+          matchedLang?.sampleText ||
+          `Hello, I am ${name}. How may I help you today?`;
+      } else {
+        text =
+          matchedTone?.sampleText ||
+          matchedLang?.sampleText ||
+          `नमस्ते, मैं ${name} हूँ, आपकी सहायता के लिए मैं उपस्थित हूँ।`;
+      }
     }
 
     // Interpolate voice name in text

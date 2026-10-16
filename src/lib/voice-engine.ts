@@ -409,9 +409,6 @@ class UniversalVoiceEngine {
     try {
       const audio = new Audio(serverAudioUrl);
       this.activeAudio = audio;
-      if (audioRate && !isNaN(audioRate) && audioRate > 0.5 && audioRate < 2.0) {
-        audio.playbackRate = audioRate;
-      }
 
       audio.onplay = () => {
         this.currentDetails = details;

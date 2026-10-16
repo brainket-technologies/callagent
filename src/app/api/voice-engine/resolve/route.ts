@@ -14,7 +14,7 @@ interface VoiceEngineDbConfig {
 async function loadDbEngineConfig(): Promise<{
   config: VoiceEngineDbConfig;
   languages: Array<{ id: string; code: string; name: string; nativeName?: string | null; flagEmoji?: string | null; sampleText?: string | null }>;
-  tones: Array<{ id: string; key: string; name: string; icon?: string | null; audioRate?: string | null; audioPitch?: string | null }>;
+  tones: Array<{ id: string; key: string; name: string; icon?: string | null; audioRate?: string | null; audioPitch?: string | null; sampleText?: string | null; sampleTextEn?: string | null }>;
 }> {
   const [settingsRow, allLangs, allTones] = await Promise.all([
     db.select().from(systemSettings).where(eq(systemSettings.key, "voice_engine_config")).limit(1),
@@ -94,6 +94,8 @@ export async function GET(req: NextRequest) {
         icon: t.icon,
         rate: Number(t.audioRate || 1.0),
         pitch: Number(t.audioPitch || 1.0),
+        sampleText: t.sampleText || "",
+        sampleTextEn: t.sampleTextEn || "",
       })),
       voice: matchedVoice,
     });
@@ -170,6 +172,8 @@ export async function POST(req: NextRequest) {
       icon: matchedToneObj?.icon || "💼",
       rate: Number(matchedToneObj?.audioRate || config.toneAudioProfiles[resolvedToneKey]?.rate || 1.0),
       pitch: Number(matchedToneObj?.audioPitch || config.toneAudioProfiles[resolvedToneKey]?.pitch || 1.0),
+      sampleText: matchedToneObj?.sampleText || "",
+      sampleTextEn: matchedToneObj?.sampleTextEn || "",
     };
 
     // Resolve Connected Language from DB
@@ -217,14 +221,23 @@ export async function POST(req: NextRequest) {
       else if (localizedMap.hi) effectiveLocalizedName = localizedMap.hi;
     }
 
-    // 4. Interpolate and Sanitize Text directly from DB
+    // 4. Resolve Spoken Script directly from the DB Tone attached to the voice!
     let spokenText = (text || "").trim();
     if (!spokenText) {
-      spokenText = matchedLangObj?.sampleText || (
-        isIndic
-          ? `नमस्ते, मैं ${effectiveLocalizedName} हूँ, आपकी सभी व्यावसायिक कॉल्स को आसानी से संभालने के लिए मैं तैयार हूँ`
-          : `Hello, I am ${cleanVoiceName}. I am ready to handle your business communications with ease`
-      );
+      if (langPrefix === "en") {
+        spokenText =
+          matchedToneObj?.sampleTextEn ||
+          matchedToneObj?.sampleText ||
+          matchedLangObj?.sampleText ||
+          `Hello, I am ${cleanVoiceName}. How may I help you today?`;
+      } else {
+        spokenText =
+          matchedToneObj?.sampleText ||
+          matchedLangObj?.sampleText ||
+          (isIndic
+            ? `नमस्ते, मैं ${effectiveLocalizedName} हूँ, आपकी सभी व्यावसायिक कॉल्स को आसानी से संभालने के लिए मैं तैयार हूँ`
+            : `Hello, I am ${cleanVoiceName}. I am ready to handle your business communications with ease`);
+      }
     }
 
     spokenText = spokenText
