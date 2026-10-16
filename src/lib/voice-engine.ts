@@ -137,28 +137,20 @@ export function sanitizeSpeechText(text: string, voiceName: string, langCode?: s
     .replace(/[-—–]{2,}/g, ", ")
     .replace(/(?<=\s)-(?=\s)/g, ", ");
 
-  // 8. Prevent 'dot' audio glitch in Indic TTS engines
-  if (isIndic || hasIndicScript) {
-    cleaned = cleaned
-      .replace(/[।॥!?;.]/g, ", ")
-      .replace(/[:]/g, ", ")
-      .replace(/,{2,}/g, ",")
-      .replace(/\s*,\s*/g, ", ")
-      .replace(/\s+/g, " ")
-      .replace(/^[,.\s]+/, "")
-      .replace(/[,.\s]+$/, "");
-  } else {
-    cleaned = cleaned
-      .replace(/[।॥!?;]/g, ".")
-      .replace(/[:]/g, ", ")
-      .replace(/\.{2,}/g, ".")
-      .replace(/,{2,}/g, ",")
-      .replace(/,\s*\./g, ".")
-      .replace(/\s+\./g, ".")
-      .replace(/\s+/g, " ")
-      .replace(/^[.,\s]+/, "")
-      .replace(/[,.\s]+$/, "");
-  }
+  // 8. Preserve natural prosodic punctuation (?, !, ,, ।, .) for authentic human inflection & breathing cadence
+  cleaned = cleaned
+    .replace(/[;:]/g, ",")
+    .replace(/!{2,}/g, "!")
+    .replace(/\?{2,}/g, "?")
+    .replace(/\.{2,}/g, ".")
+    .replace(/,{2,}/g, ",")
+    .replace(/\s*,\s*/g, ", ")
+    .replace(/\s*!\s*/g, "! ")
+    .replace(/\s*\?\s*/g, "? ")
+    .replace(/\s*([।॥])\s*/g, "$1 ")
+    .replace(/\s+/g, " ")
+    .replace(/^[,.\s।]+/, "")
+    .replace(/[,.\s]+$/, "");
 
   return cleaned.trim();
 }
