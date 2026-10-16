@@ -18,6 +18,12 @@ interface VoicePersonaConfig {
 
 // Distinct voice persona profiles tuned for crisp, natural, professional acoustics (no heavy bass drop)
 const VOICE_PERSONAS: Record<string, VoicePersonaConfig> = {
+  // Firoz (Natural, friendly, casual Indian male companion - authentic conversational Hindi/Hinglish friend)
+  "firoz-sonic-35": {
+    voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
+    pitchOffset: 0,
+    rateOffset: 2,
+  },
   // Arjun (Fast, authoritative Indian male logistics coordinator)
   "arjun-sonic-35": {
     voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
