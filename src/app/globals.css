@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
 :root {
+  /* ==========================================================================
+     CENTRALIZED THEME COLOR TOKENS — HACKERRANK GREEN (#11E97F) & CLEAN WHITE LIGHT MODE
+     ========================================================================== */
+  --theme-bg: #ffffff;              /* Clean White Background */
+  --theme-canvas: #f8fafc;          /* Soft Off-White Canvas */
+  --theme-border: #e2e8f0;          /* Clean Hairline Border */
+  --theme-border-subtle: #f1f5f9;
+
+  --theme-primary: #11e97f;         /* HackerRank Vibrant Emerald Green */
+  --theme-primary-hover: #0ed071;
+  --theme-primary-text: #0a0e1a;
+  --theme-primary-light: #ecfdf5;   /* Emerald 50 */
+  --theme-emerald-dark: #059669;
+
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-brand-bg: var(--theme-bg);
+  --color-brand-canvas: var(--theme-canvas);
+  --color-brand-border: var(--theme-border);
+  --color-brand-primary: var(--theme-primary);
+  --color-brand-primary-hover: var(--theme-primary-hover);
+  --color-brand-primary-text: var(--theme-primary-text);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* HackerRank Green Signature Button (#11E97F) */
+.btn-hackerrank-green {
+  background-color: #11e97f;
+  color: #0a0e1a;
+  font-weight: 800;
+  box-shadow: 0 1px 3px 0 rgba(17, 233, 127, 0.25);
+  transition: all 0.15s ease-in-out;
+}
+.btn-hackerrank-green:hover {
+  background-color: #0ed071;
+  box-shadow: 0 4px 14px 0 rgba(17, 233, 127, 0.4);
+  transform: translateY(-1px);
+}
+.btn-hackerrank-green:active {
+  transform: scale(0.97);
+}
+
+/* Green Glow Utility */
+.glow-hackerrank-green {
+  box-shadow: 0 0 25px -3px rgba(17, 233, 127, 0.35);
+}
+
+/* Prevent Chrome from forcing light-blue background on autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  box-shadow: 0 0 0 1000px white inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  transition: background-color 50000s ease-in-out 0s;
 }
