@@ -21,6 +21,12 @@ import {
   Radio,
   Languages,
   Check,
+  Key,
+  Users,
+  SlidersHorizontal,
+  RefreshCw,
+  PhoneCall,
+  Bot,
 } from "lucide-react";
 import {
   useVoiceEngine,
@@ -83,7 +89,7 @@ interface VoiceItem {
   sortOrder: number;
 }
 
-const PROVIDER_TABS = ["All", "Cartesia", "ElevenLabs", "Google", "Sarvam", "OpenAI"] as const;
+const PROVIDER_TABS = ["All", "Custom Clones", "Cartesia", "ElevenLabs", "Google", "Sarvam", "OpenAI"] as const;
 
 export default function AdminVoiceLibraryPage() {
   const [voices, setVoices] = useState<VoiceItem[]>([]);
@@ -105,6 +111,53 @@ export default function AdminVoiceLibraryPage() {
     playingSlug,
     playingDetails,
   } = useVoiceEngine();
+
+  // Voice API Keys Modal State
+  const [showApiKeysModal, setShowApiKeysModal] = useState(false);
+  const [savingApiKeys, setSavingApiKeys] = useState(false);
+  const [apiKeysConfig, setApiKeysConfig] = useState({
+    elevenlabsApiKey: "",
+    sarvamApiKey: "",
+    cartesiaApiKey: "",
+    openaiApiKey: "",
+    hasElevenlabsKey: false,
+    hasSarvamKey: false,
+    hasCartesiaKey: false,
+    hasOpenaiKey: false,
+    defaultProvider: "elevenlabs",
+  });
+
+  // Clone Reference Audio Modal State
+  const [showCloneModal, setShowCloneModal] = useState(false);
+  const [isCloning, setIsCloning] = useState(false);
+  const cloneFileInputRef = useRef<HTMLInputElement>(null);
+  const [cloneFormData, setCloneFormData] = useState({
+    name: "",
+    gender: "female",
+    provider: "ElevenLabs",
+    tone: "",
+    description: "",
+    file: null as File | null,
+    fileName: "",
+  });
+
+  // Two-Speaker Dialogue Simulator State
+  const [showDialogueModal, setShowDialogueModal] = useState(false);
+  const [isSimulatingDialogue, setIsSimulatingDialogue] = useState(false);
+  const [dialogueActiveTurn, setDialogueActiveTurn] = useState<number | null>(null);
+  const [dialogueAudio, setDialogueAudio] = useState<HTMLAudioElement | null>(null);
+  const [dialogueParams, setDialogueParams] = useState({
+    speakerAId: "firoz-sonic-35",
+    speakerBId: "riya-sonic-35",
+    style: 0.35,
+    stability: 0.5,
+    turns: [
+      { speaker: "A" as const, text: "अरे नमस्ते! कैसे हैं आप? मैं Voxera से बोल रहा हूँ।" },
+      { speaker: "B" as const, text: "हाँजी नमस्ते! बताइए क्या बात है?" },
+      { speaker: "A" as const, text: "बस आपके नए ऑर्डर के कन्फर्मेशन को लेकर एक छोटी सी बात करनी थी।" },
+      { speaker: "B" as const, text: "अच्छा बढ़िया, बिल्कुल बताइए!" },
+    ],
+  });
 
   // Add / Edit Modal State
   const [showModal, setShowModal] = useState(false);
@@ -148,8 +201,149 @@ export default function AdminVoiceLibraryPage() {
       if (toneRes?.success && Array.isArray(toneRes.tones)) {
         setAvailableTones(toneRes.tones);
       }
+      loadApiKeysConfig();
     } catch (err) {
       console.error("Error loading voice dependencies:", err);
+    }
+  };
+
+  // Fetch Voice Provider API Credentials
+  const loadApiKeysConfig = async () => {
+    try {
+      const res = await fetch("/api/admin/voice-settings");
+      const data = await res.json();
+      if (data.success && data.config) {
+        setApiKeysConfig(data.config);
+      }
+    } catch (err) {
+      console.warn("Could not load voice settings:", err);
+    }
+  };
+
+  // Save Voice Provider API Credentials
+  const handleSaveApiKeys = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingApiKeys(true);
+    try {
+      const res = await fetch("/api/admin/voice-settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apiKeysConfig),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Voice Provider API keys saved successfully!");
+        setShowApiKeysModal(false);
+        loadApiKeysConfig();
+      } else {
+        throw new Error(data.error || "Failed to save API keys");
+      }
+    } catch (err: any) {
+      showToast(err?.message || "Failed to save API credentials");
+    } finally {
+      setSavingApiKeys(false);
+    }
+  };
+
+  // Clone Custom Voice from Reference Audio
+  const handleCloneVoice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cloneFormData.file) {
+      showToast("Please select a reference audio file first (.mp3, .wav).");
+      return;
+    }
+    if (!cloneFormData.name.trim()) {
+      showToast("Please provide a name for the cloned voice.");
+      return;
+    }
+    setIsCloning(true);
+    try {
+      const form = new FormData();
+      form.append("name", cloneFormData.name);
+      form.append("gender", cloneFormData.gender);
+      form.append("provider", cloneFormData.provider);
+      form.append("tone", cloneFormData.tone || availableTones[0]?.id || "");
+      form.append("description", cloneFormData.description);
+      form.append("file", cloneFormData.file);
+
+      const res = await fetch("/api/admin/voices/clone", {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (data.success && data.voice) {
+        showToast(data.message || "Custom voice cloned successfully!");
+        setShowCloneModal(false);
+        setCloneFormData({
+          name: "",
+          gender: "female",
+          provider: "ElevenLabs",
+          tone: "",
+          description: "",
+          file: null,
+          fileName: "",
+        });
+        loadVoices();
+      } else {
+        throw new Error(data.error || "Failed to clone voice");
+      }
+    } catch (err: any) {
+      showToast(err?.message || "Voice cloning failed");
+    } finally {
+      setIsCloning(false);
+    }
+  };
+
+  // Simulate Two-Speaker Live Dialogue
+  const handleSimulateDialogue = async () => {
+    if (dialogueAudio) {
+      dialogueAudio.pause();
+      setDialogueAudio(null);
+      setDialogueActiveTurn(null);
+    }
+    setIsSimulatingDialogue(true);
+    try {
+      const res = await fetch("/api/voice-engine/dialogue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          speakerAId: dialogueParams.speakerAId,
+          speakerBId: dialogueParams.speakerBId,
+          dialogue: dialogueParams.turns,
+          style: dialogueParams.style,
+          stability: dialogueParams.stability,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.turns)) {
+        const turnsToPlay = data.turns;
+        const playTurn = (idx: number) => {
+          if (idx >= turnsToPlay.length) {
+            setDialogueActiveTurn(null);
+            setIsSimulatingDialogue(false);
+            return;
+          }
+          setDialogueActiveTurn(idx);
+          const turn = turnsToPlay[idx];
+          const audio = new Audio(turn.audioUrl);
+          setDialogueAudio(audio);
+          audio.onended = () => {
+            setTimeout(() => {
+              playTurn(idx + 1);
+            }, 350);
+          };
+          audio.onerror = () => {
+            playTurn(idx + 1);
+          };
+          audio.play().catch(() => playTurn(idx + 1));
+        };
+        playTurn(0);
+      } else {
+        throw new Error(data.error || "Failed to simulate dialogue");
+      }
+    } catch (err: any) {
+      showToast(err?.message || "Dialogue simulation failed");
+      setIsSimulatingDialogue(false);
     }
   };
 
@@ -180,8 +374,8 @@ export default function AdminVoiceLibraryPage() {
   const [activeVoiceLanguages, setActiveVoiceLanguages] = useState<Record<string, string>>({});
 
   // Dynamic Live Voice Preview & Script Prompt Tester state (Top edit box)
-  const DEFAULT_ENGLISH_PROMPT = "Hello, I am ${name}. I am ready to handle your business communications with ease";
-  const DEFAULT_HINDI_PROMPT = "नमस्ते, मैं ${name} हूँ, आपकी सभी व्यावसायिक कॉल्स को संभालने के लिए मैं तैयार हूँ";
+  const DEFAULT_ENGLISH_PROMPT = "Hey there! How are you doing today? This is ${name}... Let me know how I can help you out!";
+  const DEFAULT_HINDI_PROMPT = "अरे नमस्ते! कैसे हैं आप? मैं ${name} बोल रहा हूँ... बताइए, आज मैं आपकी क्या मदद कर सकता हूँ?";
   const [previewScriptText, setPreviewScriptText] = useState<string>("");
 
   const getVoiceToneKey = (voice: VoiceItem, overrideToneIdOrKey?: string): string => {
@@ -516,7 +710,11 @@ export default function AdminVoiceLibraryPage() {
 
   // Filter Voices
   const filteredVoices = voices.filter((v) => {
-    const matchesTab = activeTab === "All" || v.provider.toLowerCase() === activeTab.toLowerCase();
+    const matchesTab =
+      activeTab === "All" ||
+      (activeTab === "Custom Clones"
+        ? v.tag === "Custom Clone" || v.provider === "Custom"
+        : v.provider.toLowerCase() === activeTab.toLowerCase());
     const matchesGender = selectedGenderFilter === "all" || v.gender.toLowerCase() === selectedGenderFilter;
     const matchesLanguage =
       selectedLanguageFilter === "all" ||
@@ -549,6 +747,7 @@ export default function AdminVoiceLibraryPage() {
   const activeCount = voices.filter((v) => v.isEnabled).length;
   const femaleCount = voices.filter((v) => v.gender === "female").length;
   const maleCount = voices.filter((v) => v.gender === "male").length;
+  const customCloneCount = voices.filter((v) => v.tag === "Custom Clone" || v.provider === "Custom").length;
   const cartesiaCount = voices.filter((v) => v.provider === "Cartesia").length;
   const elevenLabsCount = voices.filter((v) => v.provider === "ElevenLabs").length;
   const googleCount = voices.filter((v) => v.provider === "Google").length;
@@ -578,24 +777,62 @@ export default function AdminVoiceLibraryPage() {
             <Mic className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Voice Library & Models</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-900">Voice Library & Models</h1>
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200">
+                Real-Time Human Ready
+              </span>
+            </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Manage AI voice synthesis models for assistants. Male and Female voice acoustics configured with authentic previews.
+              Ultra-realistic human voices for live calls. Clone reference audio, orchestrate dialogue, and connect ElevenLabs & Sarvam AI.
             </p>
           </div>
         </div>
 
-        <button
-          onClick={handleOpenAddModal}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition cursor-pointer"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Add New Voice</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Voice API Keys Button */}
+          <button
+            onClick={() => setShowApiKeysModal(true)}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:border-slate-300 transition cursor-pointer"
+          >
+            <Key className="h-3.5 w-3.5 text-amber-500" />
+            <span>Voice API Keys</span>
+            {(apiKeysConfig.hasElevenlabsKey || apiKeysConfig.hasSarvamKey || apiKeysConfig.hasCartesiaKey || apiKeysConfig.hasOpenaiKey) && (
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            )}
+          </button>
+
+          {/* Dialogue Simulator Button */}
+          <button
+            onClick={() => setShowDialogueModal(true)}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:border-slate-300 transition cursor-pointer"
+          >
+            <Users className="h-3.5 w-3.5 text-indigo-500" />
+            <span>Two-Speaker Dialogue</span>
+          </button>
+
+          {/* Replicate Audio / Clone Voice Button */}
+          <button
+            onClick={() => setShowCloneModal(true)}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-semibold text-emerald-800 shadow-xs hover:bg-emerald-100 transition cursor-pointer"
+          >
+            <UploadCloud className="h-3.5 w-3.5 text-emerald-600" />
+            <span>Replicate Audio (Clone)</span>
+          </button>
+
+          {/* Add New Voice Button */}
+          <button
+            onClick={handleOpenAddModal}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Voice</span>
+          </button>
+        </div>
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
         <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
           <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Voices</p>
           <p className="text-2xl font-bold text-slate-900 mt-1">{totalCount}</p>
@@ -606,19 +843,28 @@ export default function AdminVoiceLibraryPage() {
           </div>
         </div>
         <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
-          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Cartesia</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{cartesiaCount}</p>
-          <p className="text-[11px] text-slate-400 mt-1">Sonic-3.5 Fast TTS</p>
+          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Custom Clones</p>
+          <p className="text-2xl font-bold text-emerald-700 mt-1">{customCloneCount}</p>
+          <p className="text-[11px] text-slate-400 mt-1">Reference Audio</p>
         </div>
         <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
           <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">ElevenLabs</p>
           <p className="text-2xl font-bold text-slate-900 mt-1">{elevenLabsCount}</p>
-          <p className="text-[11px] text-slate-400 mt-1">Turbo v2.5 / Multi</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            {apiKeysConfig.hasElevenlabsKey ? "🟢 Live Connected" : "Turbo v2.5 / Multi"}
+          </p>
         </div>
         <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
-          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Google & Sarvam</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{googleCount + sarvamCount}</p>
-          <p className="text-[11px] text-slate-400 mt-1">Indic & Global Hub</p>
+          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Sarvam AI</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{sarvamCount}</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            {apiKeysConfig.hasSarvamKey ? "🟢 Live Connected" : "Native Indian Bulbul"}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
+          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Cartesia</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{cartesiaCount}</p>
+          <p className="text-[11px] text-slate-400 mt-1">Sonic-3.5 Fast TTS</p>
         </div>
         <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
           <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">OpenAI</p>
@@ -663,39 +909,39 @@ export default function AdminVoiceLibraryPage() {
             </button>
             <button
               type="button"
-              onClick={() => setPreviewScriptText(DEFAULT_ENGLISH_PROMPT)}
-              className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white border border-slate-200 text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition shadow-2xs cursor-pointer"
-            >
-              🇬🇧 English Intro
-            </button>
-            <button
-              type="button"
               onClick={() => setPreviewScriptText(DEFAULT_HINDI_PROMPT)}
               className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white border border-slate-200 text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition shadow-2xs cursor-pointer"
             >
-              🇮🇳 Hindi Intro
+              🇮🇳 Casual Hindi (दोस्त जैसी बात)
             </button>
             <button
               type="button"
               onClick={() =>
                 setPreviewScriptText(
-                  "Hello, this is ${name} from Voxera AI. I am calling to confirm your appointment for tomorrow"
+                  "नमस्ते जी! मैं ${name} बात कर रही हूँ... आपके ऑर्डर को लेकर एक छोटा सा अपडेट था, क्या अभी दो मिनट बात हो सकती है?"
                 )
               }
               className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white border border-slate-200 text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition shadow-2xs cursor-pointer"
             >
-              📞 Booking Call
+              👩 Support (कस्टमर केयर)
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewScriptText(DEFAULT_ENGLISH_PROMPT)}
+              className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white border border-slate-200 text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition shadow-2xs cursor-pointer"
+            >
+              🌐 Casual English
             </button>
             <button
               type="button"
               onClick={() =>
                 setPreviewScriptText(
-                  "नमस्ते, मैं ${name} बोल रहा हूँ, आपके ऑर्डर की डिलीवरी आज शाम तक हो जाएगी"
+                  "नमस्ते! मैं ${name} बोल रहा हूँ डिलीवरी टीम से... आपका पार्सल आज डिलीवर होने वाला है, बस एक बार लोकेशन कन्फर्म करनी थी।"
                 )
               }
               className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white border border-slate-200 text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition shadow-2xs cursor-pointer"
             >
-              📦 Order Alert
+              📦 Dispatch & Delivery
             </button>
           </div>
         </div>
@@ -1464,6 +1710,654 @@ export default function AdminVoiceLibraryPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Voice Engine API Credentials Modal */}
+      {showApiKeysModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-200/60">
+                  <Key className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    Voice Engine API Credentials
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Connect ElevenLabs, Sarvam AI, Cartesia & OpenAI for 100% human-like voice synthesis.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowApiKeysModal(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveApiKeys} className="mt-4 space-y-4">
+              {/* ElevenLabs API Key */}
+              <div className="space-y-1.5 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-800 flex items-center gap-2">
+                    <span>ElevenLabs API Key</span>
+                    {apiKeysConfig.hasElevenlabsKey ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Connected
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                        Not Configured
+                      </span>
+                    )}
+                  </label>
+                  <a
+                    href="https://elevenlabs.io"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] font-medium text-emerald-600 hover:underline"
+                  >
+                    Get API Key ↗
+                  </a>
+                </div>
+                <input
+                  type="password"
+                  placeholder={apiKeysConfig.hasElevenlabsKey ? "••••••••••••••••••••••••" : "sk_..."}
+                  value={apiKeysConfig.elevenlabsApiKey}
+                  onChange={(e) =>
+                    setApiKeysConfig({ ...apiKeysConfig, elevenlabsApiKey: e.target.value })
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+                <p className="text-[10px] text-slate-500">
+                  Enables ElevenLabs Turbo v2.5, Multilingual v2, and Custom Instant Voice Cloning.
+                </p>
+              </div>
+
+              {/* Sarvam AI API Key */}
+              <div className="space-y-1.5 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-800 flex items-center gap-2">
+                    <span>Sarvam AI API Key (Bulbul)</span>
+                    {apiKeysConfig.hasSarvamKey ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Connected
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                        Not Configured
+                      </span>
+                    )}
+                  </label>
+                  <a
+                    href="https://sarvam.ai"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] font-medium text-emerald-600 hover:underline"
+                  >
+                    Get API Key ↗
+                  </a>
+                </div>
+                <input
+                  type="password"
+                  placeholder={apiKeysConfig.hasSarvamKey ? "••••••••••••••••••••••••" : "sarvam_api_key_..."}
+                  value={apiKeysConfig.sarvamApiKey}
+                  onChange={(e) =>
+                    setApiKeysConfig({ ...apiKeysConfig, sarvamApiKey: e.target.value })
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+                <p className="text-[10px] text-slate-500">
+                  State-of-the-art native Indian Hindi & Hinglish phone conversational voices (bulbul:v1).
+                </p>
+              </div>
+
+              {/* Cartesia API Key */}
+              <div className="space-y-1.5 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-800 flex items-center gap-2">
+                    <span>Cartesia API Key (Sonic-3.5)</span>
+                    {apiKeysConfig.hasCartesiaKey ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Connected
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                        Not Configured
+                      </span>
+                    )}
+                  </label>
+                  <a
+                    href="https://cartesia.ai"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] font-medium text-emerald-600 hover:underline"
+                  >
+                    Get API Key ↗
+                  </a>
+                </div>
+                <input
+                  type="password"
+                  placeholder={apiKeysConfig.hasCartesiaKey ? "••••••••••••••••••••••••" : "cartesia_api_key_..."}
+                  value={apiKeysConfig.cartesiaApiKey}
+                  onChange={(e) =>
+                    setApiKeysConfig({ ...apiKeysConfig, cartesiaApiKey: e.target.value })
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+                <p className="text-[10px] text-slate-500">
+                  Ultra low-latency streaming TTS (90ms) for high-frequency call center dialogues.
+                </p>
+              </div>
+
+              {/* OpenAI API Key */}
+              <div className="space-y-1.5 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-800 flex items-center gap-2">
+                    <span>OpenAI API Key (TTS-1 HD)</span>
+                    {apiKeysConfig.hasOpenaiKey ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Connected
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                        Not Configured
+                      </span>
+                    )}
+                  </label>
+                  <a
+                    href="https://platform.openai.com/api-keys"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] font-medium text-emerald-600 hover:underline"
+                  >
+                    Get API Key ↗
+                  </a>
+                </div>
+                <input
+                  type="password"
+                  placeholder={apiKeysConfig.hasOpenaiKey ? "••••••••••••••••••••••••" : "sk-..."}
+                  value={apiKeysConfig.openaiApiKey}
+                  onChange={(e) =>
+                    setApiKeysConfig({ ...apiKeysConfig, openaiApiKey: e.target.value })
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+                <p className="text-[10px] text-slate-500">
+                  Enables OpenAI HD voices (alloy, echo, fable, onyx, nova, shimmer).
+                </p>
+              </div>
+
+              {/* Default Engine Selection */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700">Preferred Default Voice Engine</label>
+                <select
+                  value={apiKeysConfig.defaultProvider}
+                  onChange={(e) =>
+                    setApiKeysConfig({ ...apiKeysConfig, defaultProvider: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                >
+                  <option value="elevenlabs">ElevenLabs (Turbo v2.5 / Multilingual v2) - Recommended</option>
+                  <option value="sarvam">Sarvam AI (Bulbul - Native Indian Hindi & Hinglish)</option>
+                  <option value="cartesia">Cartesia Sonic-3.5 (Ultra Low Latency 90ms)</option>
+                  <option value="openai">OpenAI (TTS-1 HD High Definition)</option>
+                </select>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  When API keys are configured, all agent calls will stream from these ultra-realistic human models.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowApiKeysModal(false)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingApiKeys}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50 transition cursor-pointer"
+                >
+                  {savingApiKeys && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  <span>{savingApiKeys ? "Saving..." : "Save Credentials"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Replicate Audio / Voice Clone Modal */}
+      {showCloneModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60">
+                  <UploadCloud className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    Replicate Reference Audio (Voice Clone)
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Upload a real person's audio sample to replicate their exact acoustic tone and style.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowCloneModal(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCloneVoice} className="mt-4 space-y-4">
+              {/* File Upload Drag/Drop Box */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700">Reference Audio File *</label>
+                <input
+                  type="file"
+                  ref={cloneFileInputRef}
+                  accept="audio/*,.mp3,.wav,.m4a"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setCloneFormData({
+                        ...cloneFormData,
+                        file: file,
+                        fileName: file.name,
+                      });
+                    }
+                  }}
+                />
+                <div
+                  onClick={() => cloneFileInputRef.current?.click()}
+                  className={`mt-1.5 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center cursor-pointer transition ${
+                    cloneFormData.file
+                      ? "border-emerald-500 bg-emerald-50/40"
+                      : "border-slate-300 bg-slate-50/50 hover:border-emerald-400 hover:bg-slate-100/50"
+                  }`}
+                >
+                  {cloneFormData.file ? (
+                    <div className="space-y-1">
+                      <div className="flex h-10 w-10 mx-auto items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                        <CheckCircle2 className="h-6 w-6" />
+                      </div>
+                      <p className="text-xs font-bold text-emerald-900">{cloneFormData.fileName}</p>
+                      <p className="text-[11px] text-emerald-700">
+                        {(cloneFormData.file.size / (1024 * 1024)).toFixed(2)} MB • Click to change file
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <div className="flex h-10 w-10 mx-auto items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                        <UploadCloud className="h-6 w-6" />
+                      </div>
+                      <p className="text-xs font-semibold text-slate-700">
+                        Click to select or drag audio recording
+                      </p>
+                      <p className="text-[11px] text-slate-400">
+                        Supports MP3, WAV, M4A (10s – 2min of clear speech recommended)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Voice Name & Gender */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700">Voice Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Firoz (Personal Clone)"
+                    value={cloneFormData.name}
+                    onChange={(e) => setCloneFormData({ ...cloneFormData, name: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700">Perceived Gender *</label>
+                  <select
+                    value={cloneFormData.gender}
+                    onChange={(e) => setCloneFormData({ ...cloneFormData, gender: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+                  >
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                    <option value="neutral">Neutral</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Provider & Tone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700">Cloning Provider</label>
+                  <select
+                    value={cloneFormData.provider}
+                    onChange={(e) => setCloneFormData({ ...cloneFormData, provider: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+                  >
+                    <option value="ElevenLabs">ElevenLabs Instant Clone</option>
+                    <option value="Cartesia">Cartesia Sonic Voice Clone</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700">Conversational Persona / Tone</label>
+                  <select
+                    value={cloneFormData.tone}
+                    onChange={(e) => setCloneFormData({ ...cloneFormData, tone: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+                  >
+                    {availableTones.map((tone) => (
+                      <option key={tone.id} value={tone.id}>
+                        {tone.icon || "💼"} {tone.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700">Description / Cadence Notes</label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Natural Hindi/English speaking voice with calm conversational pace."
+                  value={cloneFormData.description}
+                  onChange={(e) => setCloneFormData({ ...cloneFormData, description: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="rounded-xl bg-amber-50 border border-amber-200/80 p-3 text-[11px] text-amber-900">
+                <p className="font-semibold flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+                  <span>Instant Audio Replication Engine</span>
+                </p>
+                <p className="mt-0.5 text-amber-800">
+                  The audio recording is analyzed for acoustic cadence, timbre, and vocal depth. Once cloned, the voice model becomes immediately available across all caller agents.
+                </p>
+              </div>
+
+              {/* Modal Buttons */}
+              <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCloneModal(false)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCloning}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50 transition cursor-pointer"
+                >
+                  {isCloning && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  <span>{isCloning ? "Cloning Voice..." : "Clone & Deploy Voice"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Two-Speaker Dialogue Simulator Modal */}
+      {showDialogueModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="relative w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/60">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    Two-Speaker Conversational Dialogue Simulator
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Orchestrate two-speaker natural turn-taking with control over emotion, style, and stability.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  if (dialogueAudio) {
+                    dialogueAudio.pause();
+                    setDialogueAudio(null);
+                  }
+                  setDialogueActiveTurn(null);
+                  setShowDialogueModal(false);
+                }}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              {/* Speaker Selectors */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-2xl bg-slate-50/80 border border-slate-200/80">
+                <div>
+                  <label className="text-xs font-semibold text-slate-800 flex items-center gap-1.5 mb-1">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">A</span>
+                    <span>Speaker A (AI Agent)</span>
+                  </label>
+                  <select
+                    value={dialogueParams.speakerAId}
+                    onChange={(e) =>
+                      setDialogueParams({ ...dialogueParams, speakerAId: e.target.value })
+                    }
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-900 bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  >
+                    {voices.map((v) => (
+                      <option key={v.slug} value={v.slug}>
+                        {v.name} ({v.provider} • {v.gender})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-800 flex items-center gap-1.5 mb-1">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold">B</span>
+                    <span>Speaker B (Lead / Caller)</span>
+                  </label>
+                  <select
+                    value={dialogueParams.speakerBId}
+                    onChange={(e) =>
+                      setDialogueParams({ ...dialogueParams, speakerBId: e.target.value })
+                    }
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-900 bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  >
+                    {voices.map((v) => (
+                      <option key={v.slug} value={v.slug}>
+                        {v.name} ({v.provider} • {v.gender})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Sliders for Style & Stability */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-2xl border border-slate-200/80 bg-white">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                    <span className="flex items-center gap-1.5">
+                      <SlidersHorizontal className="h-3.5 w-3.5 text-indigo-600" />
+                      <span>Style Exaggeration</span>
+                    </span>
+                    <span className="font-mono text-indigo-600">{Math.round(dialogueParams.style * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={dialogueParams.style}
+                    onChange={(e) =>
+                      setDialogueParams({ ...dialogueParams, style: parseFloat(e.target.value) })
+                    }
+                    className="w-full accent-indigo-600 cursor-pointer"
+                  />
+                  <p className="text-[10px] text-slate-400">Controls emotional liveliness and vocal inflection.</p>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                    <span className="flex items-center gap-1.5">
+                      <Sliders className="h-3.5 w-3.5 text-emerald-600" />
+                      <span>Stability & Clarity</span>
+                    </span>
+                    <span className="font-mono text-emerald-600">{Math.round(dialogueParams.stability * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={dialogueParams.stability}
+                    onChange={(e) =>
+                      setDialogueParams({ ...dialogueParams, stability: parseFloat(e.target.value) })
+                    }
+                    className="w-full accent-emerald-600 cursor-pointer"
+                  />
+                  <p className="text-[10px] text-slate-400">Higher stability sounds consistent; lower sounds more spontaneous.</p>
+                </div>
+              </div>
+
+              {/* Dialogue Turns Script Box */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                    <AudioWaveform className="h-3.5 w-3.5 text-emerald-600" />
+                    <span>Real-time Conversational Flow (Editable Turns)</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400">4 Conversational Turns</span>
+                </div>
+
+                <div className="space-y-2 max-h-56 overflow-y-auto p-1">
+                  {dialogueParams.turns.map((turn, idx) => {
+                    const isSpeakerA = turn.speaker === "A";
+                    const isCurrentlySpeaking = dialogueActiveTurn === idx;
+                    return (
+                      <div
+                        key={idx}
+                        className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition ${
+                          isCurrentlySpeaking
+                            ? "border-emerald-500 bg-emerald-50/60 shadow-xs ring-2 ring-emerald-400/40"
+                            : isSpeakerA
+                            ? "border-slate-200 bg-white"
+                            : "border-blue-100 bg-blue-50/30"
+                        }`}
+                      >
+                        <span
+                          className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold flex-shrink-0 mt-1 ${
+                            isSpeakerA
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
+                          {turn.speaker}
+                        </span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                              {isSpeakerA ? "Agent" : "Lead / Caller"}
+                            </span>
+                            {isCurrentlySpeaking && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 animate-pulse">
+                                <Volume2 className="h-3 w-3" /> Speaking now...
+                              </span>
+                            )}
+                          </div>
+                          <input
+                            type="text"
+                            value={turn.text}
+                            onChange={(e) => {
+                              const newTurns = [...dialogueParams.turns];
+                              newTurns[idx] = { ...newTurns[idx], text: e.target.value };
+                              setDialogueParams({ ...dialogueParams, turns: newTurns });
+                            }}
+                            className="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-4">
+                <div className="flex items-center gap-2">
+                  {dialogueActiveTurn !== null && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (dialogueAudio) {
+                          dialogueAudio.pause();
+                          setDialogueAudio(null);
+                        }
+                        setDialogueActiveTurn(null);
+                        setIsSimulatingDialogue(false);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition cursor-pointer"
+                    >
+                      <Pause className="h-3.5 w-3.5" />
+                      <span>Stop Playback</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (dialogueAudio) {
+                        dialogueAudio.pause();
+                        setDialogueAudio(null);
+                      }
+                      setDialogueActiveTurn(null);
+                      setShowDialogueModal(false);
+                    }}
+                    className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSimulateDialogue}
+                    disabled={isSimulatingDialogue}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50 transition cursor-pointer"
+                  >
+                    {isSimulatingDialogue ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Play className="h-3.5 w-3.5 fill-current" />
+                    )}
+                    <span>{isSimulatingDialogue ? "Synthesizing Dialogue..." : "Play Live Two-Speaker Dialogue"}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

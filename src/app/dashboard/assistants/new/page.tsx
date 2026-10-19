@@ -676,7 +676,7 @@ export default function NewAssistantWizardPage() {
             <Button
               onClick={handleGenerateAI}
               disabled={isGenerating || !name || !company}
-              className="w-full h-11 bg-emerald-500 hover:bg-emerald-600 text-neutral-950 font-bold rounded-xl shadow-lg shadow-emerald-500/20"
+              className="w-full h-11 bg-[#11E97F] hover:bg-[#0ED071] text-[#0A0E1A] font-extrabold rounded-xl shadow-sm hover:shadow-md hover:shadow-[#11E97F]/30 active:scale-95 transition-all"
             >
               {isGenerating ? (
                 <>

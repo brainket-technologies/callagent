@@ -19,16 +19,16 @@ export default function WorkflowsPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard/workflows/new"
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-4 py-2 text-xs font-bold text-white shadow-md shadow-violet-500/20 active:scale-95 transition-all"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#11E97F] hover:bg-[#0ED071] px-4 py-2 text-xs font-extrabold text-[#0A0E1A] shadow-sm hover:shadow-md hover:shadow-[#11E97F]/30 active:scale-95 transition-all"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 stroke-[3]" />
             Create workflow
           </Link>
         </div>
       </div>
 
       <div className="rounded-2xl border border-neutral-200/80 bg-white p-12 text-center shadow-sm space-y-4">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-100">
           <GitBranch className="h-7 w-7" />
         </div>
         <div>
@@ -39,9 +39,9 @@ export default function WorkflowsPage() {
         </div>
         <Link
           href="/dashboard/workflows/new"
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-violet-500/20 active:scale-95 transition-all"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#11E97F] hover:bg-[#0ED071] px-5 py-2.5 text-xs font-extrabold text-[#0A0E1A] shadow-sm hover:shadow-md hover:shadow-[#11E97F]/30 active:scale-95 transition-all"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 stroke-[3]" />
           Launch Visual Canvas
         </Link>
       </div>

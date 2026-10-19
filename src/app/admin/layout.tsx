@@ -31,6 +31,8 @@ import {
   Mic,
   Languages,
   Sparkles,
+  Coins,
+  Layers,
 } from "lucide-react";
 import { BRAND_CONFIG } from "@/lib/brand-config";
 import { THEME_CONFIG } from "@/lib/theme";
@@ -114,9 +116,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const getBreadcrumbTitle = (path: string) => {
     if (path === "/admin") return "Dashboard Overview";
     if (path === "/admin/users") return "User List & Workspaces";
+    if (path === "/admin/services") return "Platform / Services & Rate Card";
     if (path === "/admin/calls") return "Call / Msg Logs";
     if (path === "/admin/transactions") return "Transactions";
     if (path === "/admin/support") return "Support Desk";
+    if (path.startsWith("/admin/settings/currencies")) return "Settings / Currencies";
     if (path.startsWith("/admin/settings/payment")) return "Settings / Payment Gateway";
     if (path.startsWith("/admin/settings/mail")) return "Settings / Mail";
     if (path.startsWith("/admin/settings/firebase")) return "Settings / Firebase";
@@ -158,6 +162,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       title: "PLATFORM MANAGEMENT",
       items: [
         { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+        { label: "Services & Rate Card", href: "/admin/services", icon: Layers },
         { label: "User List", href: "/admin/users", icon: Users },
         { label: "Call / Msg Logs", href: "/admin/calls", icon: PhoneCall },
         { label: "Transactions", href: "/admin/transactions", icon: Receipt },
@@ -167,6 +172,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     {
       title: "SETTINGS",
       items: [
+        { label: "Currencies", href: "/admin/settings/currencies", icon: Coins },
         { label: "Payment Gateway", href: "/admin/settings/payment", icon: CreditCard },
         { label: "Mail (SMTP)", href: "/admin/settings/mail", icon: Mail },
         { label: "Firebase (FCM)", href: "/admin/settings/firebase", icon: Flame },

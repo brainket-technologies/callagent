@@ -22,7 +22,7 @@ export default function CallLimitsPage() {
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
           }}
-          className="bg-neutral-900 text-white text-xs"
+          className="text-xs"
         >
           Save
         </Button>
@@ -39,7 +39,7 @@ export default function CallLimitsPage() {
               type="checkbox"
               checked={enabled}
               onChange={(e) => setEnabled(e.target.checked)}
-              className="h-4 w-4 rounded text-neutral-900"
+              className="h-4 w-4 rounded accent-[#11E97F] text-[#11E97F] focus:ring-[#11E97F]"
             />
           </div>
 
@@ -50,7 +50,7 @@ export default function CallLimitsPage() {
                 type="number"
                 value={maxCalls}
                 onChange={(e) => setMaxCalls(Number(e.target.value))}
-                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900"
+                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:border-[#11E97F] focus:ring-1 focus:ring-[#11E97F]"
               />
               <span className="text-[10px] text-neutral-400 mt-0.5 block">calls per person</span>
             </div>
@@ -60,7 +60,7 @@ export default function CallLimitsPage() {
               <select
                 value={rollingWindow}
                 onChange={(e) => setRollingWindow(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900"
+                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:border-[#11E97F] focus:ring-1 focus:ring-[#11E97F]"
               >
                 <option>24 hours</option>
                 <option>48 hours</option>
@@ -77,8 +77,8 @@ export default function CallLimitsPage() {
         </div>
 
         {/* Projected Impact Card (Matching Screenshot 47!) */}
-        <div className="md:col-span-4 rounded-2xl border border-neutral-200/80 bg-neutral-50/50 p-6 space-y-2">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-700">Projected impact</h4>
+        <div className="md:col-span-4 rounded-2xl border border-emerald-200/60 bg-emerald-50/20 p-6 space-y-2">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-900">Projected impact</h4>
           <p className="text-xs text-neutral-500">When the limit is turned on:</p>
           <p className="text-xs text-neutral-400 leading-relaxed pt-2">
             Not enough recent calls to project this reliably. We could match a caller on only 0% of recent dials.

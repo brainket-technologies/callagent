@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CallAgent — Voxera AI Voice Agent Platform
+
+Autonomous Enterprise Voice AI, Telephony Orchestration, and Conversational Campaign Cloud built with Next.js and high-fidelity speech synthesis (Cartesia Sonic-3.5, ElevenLabs, Sarvam AI Bulbul, OpenAI).
 
 ## Getting Started
 

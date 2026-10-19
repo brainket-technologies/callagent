@@ -7,6 +7,14 @@ import path from "path";
 import crypto from "crypto";
 import { execFile } from "child_process";
 import { promisify } from "util";
+import {
+  getVoiceProvidersConfig,
+  synthesizeElevenLabsSpeech,
+  synthesizeSarvamSpeech,
+  synthesizeOpenAISpeech,
+  synthesizeCartesiaSpeech,
+  ELEVENLABS_PRESET_VOICES,
+} from "@/lib/voice-providers";
 
 const execFileAsync = promisify(execFile);
 
@@ -16,103 +24,103 @@ interface VoicePersonaConfig {
   rateOffset: number;
 }
 
-// Distinct voice persona profiles tuned for crisp, natural, professional acoustics (no heavy bass drop)
+// Distinct voice persona profiles tuned for crisp, natural, warm human acoustics (zero synthetic distortion)
 const VOICE_PERSONAS: Record<string, VoicePersonaConfig> = {
   // Firoz (Natural, friendly, casual Indian male companion - authentic conversational Hindi/Hinglish friend)
   "firoz-sonic-35": {
-    voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
+    voiceMap: { en: "en-IN-PrabhatNeural", "en-in": "en-IN-PrabhatNeural", hi: "hi-IN-MadhurNeural" },
     pitchOffset: 0,
-    rateOffset: 2,
+    rateOffset: -1,
   },
-  // Arjun (Fast, authoritative Indian male logistics coordinator)
+  // Arjun (Authoritative Indian male logistics coordinator)
   "arjun-sonic-35": {
-    voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
+    voiceMap: { en: "en-IN-PrabhatNeural", "en-in": "en-IN-PrabhatNeural", hi: "hi-IN-MadhurNeural" },
     pitchOffset: 0,
-    rateOffset: 3,
+    rateOffset: 0,
   },
   // Kabir (Calm corporate wealth & banking manager - smooth, prestigious baritone)
   "kabir-sonic-35": {
-    voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "en-US-AndrewMultilingualNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -3,
-    rateOffset: -2,
-  },
-  // Ishaan (Youthful, energetic NDR delivery reschedule)
-  "ishaan-sonic-35": {
-    voiceMap: { en: "en-US-BrianMultilingualNeural", "en-in": "en-US-BrianMultilingualNeural", hi: "hi-IN-MadhurNeural" },
+    voiceMap: { en: "en-IN-PrabhatNeural", "en-in": "en-IN-PrabhatNeural", hi: "hi-IN-MadhurNeural" },
     pitchOffset: 0,
-    rateOffset: 4,
+    rateOffset: -1,
+  },
+  // Ishaan (Youthful, energetic delivery coordinator)
+  "ishaan-sonic-35": {
+    voiceMap: { en: "en-IN-PrabhatNeural", "en-in": "en-IN-PrabhatNeural", hi: "hi-IN-MadhurNeural" },
+    pitchOffset: 0,
+    rateOffset: 0,
   },
   // Dev (Warm conversational executive companion)
   "openai-dev-echo": {
-    voiceMap: { en: "en-US-GuyNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -2,
-    rateOffset: 0,
+    voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "en-IN-PrabhatNeural", hi: "hi-IN-MadhurNeural" },
+    pitchOffset: 0,
+    rateOffset: -1,
   },
   // Aarav (Fintech loan sales lead qualifier)
   "aarav-elevenlabs": {
-    voiceMap: { en: "en-US-BrianMultilingualNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
+    voiceMap: { en: "en-IN-PrabhatNeural", "en-in": "en-IN-PrabhatNeural", hi: "hi-IN-MadhurNeural" },
     pitchOffset: 0,
-    rateOffset: 3,
+    rateOffset: 0,
   },
   // Rohan (Senior executive search consultant)
   "rohan-elevenlabs": {
-    voiceMap: { en: "en-US-AndrewMultilingualNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -3,
+    voiceMap: { en: "en-IN-PrabhatNeural", "en-in": "en-IN-PrabhatNeural", hi: "hi-IN-MadhurNeural" },
+    pitchOffset: 0,
     rateOffset: -1,
   },
   // Aditya (Banking KYC & security compliance)
   "google-aditya-neural2": {
-    voiceMap: { en: "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -2,
-    rateOffset: 1,
+    voiceMap: { en: "en-IN-PrabhatNeural", "en-in": "en-IN-PrabhatNeural", hi: "hi-IN-MadhurNeural" },
+    pitchOffset: 0,
+    rateOffset: 0,
   },
   // Vikram (Logistics fleet coordinator)
   "google-vikram-wavenet": {
-    voiceMap: { en: "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -1,
-    rateOffset: 2,
+    voiceMap: { en: "en-IN-PrabhatNeural", "en-in": "en-IN-PrabhatNeural", hi: "hi-IN-MadhurNeural" },
+    pitchOffset: 0,
+    rateOffset: 0,
   },
   // Arvind (COD Order verification)
   "sarvam-arvind-bulbul": {
-    voiceMap: { en: "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
+    voiceMap: { en: "en-IN-PrabhatNeural", "en-in": "en-IN-PrabhatNeural", hi: "hi-IN-MadhurNeural" },
     pitchOffset: 0,
-    rateOffset: 2,
+    rateOffset: 0,
   },
   // Rajesh (Operations delivery support)
   "sarvam-rajesh-bulbul": {
-    voiceMap: { en: "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -2,
-    rateOffset: 0,
+    voiceMap: { en: "en-IN-PrabhatNeural", "en-in": "en-IN-PrabhatNeural", hi: "hi-IN-MadhurNeural" },
+    pitchOffset: 0,
+    rateOffset: -1,
   },
   // Sanjay (Deep leadership onyx)
   "openai-sanjay-onyx": {
-    voiceMap: { en: "en-US-ChristopherNeural", "en-in": "hi-IN-MadhurNeural", hi: "hi-IN-MadhurNeural" },
-    pitchOffset: -4,
-    rateOffset: -2,
+    voiceMap: { en: "en-US-ChristopherNeural", "en-in": "en-IN-PrabhatNeural", hi: "hi-IN-MadhurNeural" },
+    pitchOffset: 0,
+    rateOffset: -1,
   },
-  // Riya (Cheerful, upbeat customer care)
+  // Riya (Cheerful, upbeat customer care - expressive natural female)
   "riya-sonic-35": {
     voiceMap: { en: "en-IN-NeerjaExpressiveNeural", "en-in": "en-IN-NeerjaExpressiveNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 2,
-    rateOffset: 3,
+    pitchOffset: 0,
+    rateOffset: -1,
   },
   // Ananya (Warm student admissions counselor)
   "ananya-sonic-35": {
-    voiceMap: { en: "en-US-AvaMultilingualNeural", "en-in": "en-US-AvaMultilingualNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 1,
-    rateOffset: 0,
+    voiceMap: { en: "en-IN-NeerjaNeural", "en-in": "en-IN-NeerjaNeural", hi: "hi-IN-SwaraNeural" },
+    pitchOffset: 0,
+    rateOffset: -1,
   },
   // Shreya (Calm, soothing clinic receptionist)
   "shreya-sonic-35": {
-    voiceMap: { en: "en-US-EmmaMultilingualNeural", "en-in": "en-US-EmmaMultilingualNeural", hi: "hi-IN-SwaraNeural" },
+    voiceMap: { en: "en-IN-NeerjaNeural", "en-in": "en-IN-NeerjaNeural", hi: "hi-IN-SwaraNeural" },
     pitchOffset: 0,
     rateOffset: -2,
   },
   // Pooja (Vibrant promotional sales)
   "pooja-elevenlabs": {
     voiceMap: { en: "en-IN-NeerjaExpressiveNeural", "en-in": "en-IN-NeerjaExpressiveNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 3,
-    rateOffset: 4,
+    pitchOffset: 0,
+    rateOffset: 0,
   },
   // Aditi (Compassionate patient care)
   "aditi-elevenlabs": {
@@ -122,37 +130,37 @@ const VOICE_PERSONAS: Record<string, VoicePersonaConfig> = {
   },
   // Priya (EMI reminder)
   "google-priya-neural2": {
-    voiceMap: { hi: "hi-IN-SwaraNeural" },
+    voiceMap: { en: "en-IN-NeerjaExpressiveNeural", "en-in": "en-IN-NeerjaExpressiveNeural", hi: "hi-IN-SwaraNeural" },
     pitchOffset: 0,
     rateOffset: -1,
   },
   // Sneha (Wellness desk)
   "google-sneha-wavenet": {
-    voiceMap: { en: "en-IN-NeerjaNeural", hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 1,
-    rateOffset: 1,
+    voiceMap: { en: "en-IN-NeerjaNeural", "en-in": "en-IN-NeerjaNeural", hi: "hi-IN-SwaraNeural" },
+    pitchOffset: 0,
+    rateOffset: 0,
   },
   // Kavya (Employee onboarding)
   "sarvam-kavya-bulbul": {
-    voiceMap: { hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 1,
-    rateOffset: 2,
+    voiceMap: { en: "en-IN-NeerjaNeural", "en-in": "en-IN-NeerjaNeural", hi: "hi-IN-SwaraNeural" },
+    pitchOffset: 0,
+    rateOffset: 0,
   },
   // Meera (Edtech course advisor)
   "sarvam-meera-bulbul": {
-    voiceMap: { hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 1,
-    rateOffset: 0,
+    voiceMap: { en: "en-IN-NeerjaNeural", "en-in": "en-IN-NeerjaNeural", hi: "hi-IN-SwaraNeural" },
+    pitchOffset: 0,
+    rateOffset: -1,
   },
   // Neha (Customer care)
   "openai-neha-alloy": {
-    voiceMap: { hi: "hi-IN-SwaraNeural" },
-    pitchOffset: 1,
-    rateOffset: 2,
+    voiceMap: { en: "en-US-AvaMultilingualNeural", "en-in": "en-IN-NeerjaExpressiveNeural", hi: "hi-IN-SwaraNeural" },
+    pitchOffset: 0,
+    rateOffset: 0,
   },
   // Sanya (Financial advisory)
   "openai-sanya-coral": {
-    voiceMap: { en: "en-US-AvaMultilingualNeural", "en-in": "en-US-AvaMultilingualNeural", hi: "hi-IN-SwaraNeural" },
+    voiceMap: { en: "en-US-AvaMultilingualNeural", "en-in": "en-IN-NeerjaNeural", hi: "hi-IN-SwaraNeural" },
     pitchOffset: 0,
     rateOffset: -1,
   },
@@ -164,12 +172,12 @@ const EDGE_VOICE_MAP: Record<string, { male: string; female: string }> = {
   "hi-in": { male: "hi-IN-MadhurNeural", female: "hi-IN-SwaraNeural" },
   "hi": { male: "hi-IN-MadhurNeural", female: "hi-IN-SwaraNeural" },
 
-  // English (India)
-  "en-in": { male: "hi-IN-MadhurNeural", female: "en-IN-NeerjaNeural" },
+  // English (India) - Natural, articulate Indian English neural models
+  "en-in": { male: "en-IN-PrabhatNeural", female: "en-IN-NeerjaExpressiveNeural" },
 
   // English (US)
-  "en-us": { male: "en-US-GuyNeural", female: "en-US-JennyNeural" },
-  "en": { male: "hi-IN-MadhurNeural", female: "en-IN-NeerjaNeural" },
+  "en-us": { male: "en-US-AndrewMultilingualNeural", female: "en-US-AvaMultilingualNeural" },
+  "en": { male: "en-IN-PrabhatNeural", female: "en-IN-NeerjaExpressiveNeural" },
 
   // English (UK)
   "en-gb": { male: "en-GB-RyanNeural", female: "en-GB-SoniaNeural" },
@@ -337,8 +345,8 @@ export async function GET(req: NextRequest) {
     const dbRateMod = Math.round((audioRate - 1.0) * 100);
     const dbPitchMod = Math.round((audioPitch - 1.0) * 100);
 
-    const finalRate = Math.max(-10, Math.min(15, baseRateOffset + dbRateMod));
-    const finalPitch = Math.max(-6, Math.min(6, basePitchOffset + dbPitchMod));
+    const finalRate = Math.max(-5, Math.min(3, baseRateOffset + dbRateMod));
+    const finalPitch = Math.max(-3, Math.min(3, basePitchOffset + dbPitchMod));
 
     const rateArg = finalRate >= 0 ? `+${finalRate}%` : `${finalRate}%`;
     const pitchArg = finalPitch >= 0 ? `+${finalPitch}Hz` : `${finalPitch}Hz`;
@@ -346,10 +354,13 @@ export async function GET(req: NextRequest) {
     // 4. Resolve Spoken Script directly from DB (system_tones table attached to the voice)
     const isOldGenericHindi =
       text.includes("व्यावसायिक कॉल्स को आसानी से संभालने के लिए मैं तैयार हूँ") ||
-      text.includes("vyavasayik calls ko asani se sambhalne");
+      text.includes("vyavasayik calls ko asani se sambhalne") ||
+      text.includes("आपकी सहायता के लिए मैं उपस्थित हूँ") ||
+      text.includes("sahayata ke liye main upasthit");
     const isOldGenericEnglish =
       text.includes("ready to handle your business communications with ease") ||
-      text.includes("ready to handle your business calls with ease");
+      text.includes("ready to handle your business calls with ease") ||
+      text.includes("How may I help you today?");
 
     if (!text || text.trim().length === 0 || isOldGenericHindi || isOldGenericEnglish) {
       if (isEnglish) {
@@ -357,12 +368,16 @@ export async function GET(req: NextRequest) {
           matchedTone?.sampleTextEn ||
           matchedTone?.sampleText ||
           matchedLang?.sampleText ||
-          `Hello, I am ${name}. How may I help you today?`;
+          (isMale
+            ? `Hey there! How's it going? This is ${name}... Let me know how I can help you out today!`
+            : `Hi there! Hope you're having a wonderful day! This is ${name}... How can I assist you today?`);
       } else {
         text =
           matchedTone?.sampleText ||
           matchedLang?.sampleText ||
-          `नमस्ते, मैं ${name} हूँ, आपकी सहायता के लिए मैं उपस्थित हूँ।`;
+          (isMale
+            ? `अरे नमस्ते! कैसे हैं आप? मैं ${name} बोल रहा हूँ... बताइए, आज मैं आपकी क्या मदद कर सकता हूँ?`
+            : `नमस्ते जी! कैसे हैं आप? मैं ${name} बात कर रही हूँ... आशा है आप अच्छे होंगे! बताइए, आज मैं आपकी क्या सहायता कर सकती हूँ?`);
       }
     }
 
@@ -403,7 +418,64 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // 6. Neural Synthesis with edge-tts (Exact Persona Voice + Tone Speed & Pitch)
+    // 6. Ultra-Realistic Cloud Provider Synthesis (ElevenLabs / Sarvam AI / Cartesia / OpenAI)
+    const providerConfig = await getVoiceProvidersConfig();
+    const providerName = (dbVoice?.provider || "").toLowerCase();
+    let cloudAudioBuffer: Buffer | null = null;
+
+    // A. ElevenLabs (Direct human emotion, breathing, and cloned voices)
+    if (providerConfig.elevenlabsApiKey && (providerName.includes("eleven") || dbVoice?.tag === "Custom Clone" || providerConfig.defaultProvider === "elevenlabs")) {
+      const elVoiceId = dbVoice?.voiceId || ELEVENLABS_PRESET_VOICES[personaSlug] || "pNInz6obpgDQGcFmaJgB";
+      cloudAudioBuffer = await synthesizeElevenLabsSpeech({
+        apiKey: providerConfig.elevenlabsApiKey,
+        voiceId: elVoiceId,
+        text,
+      });
+    }
+
+    // B. Sarvam AI Bulbul (Native Indian conversational speech)
+    if (!cloudAudioBuffer && providerConfig.sarvamApiKey && providerName.includes("sarvam")) {
+      cloudAudioBuffer = await synthesizeSarvamSpeech({
+        apiKey: providerConfig.sarvamApiKey,
+        speaker: isMale ? "arvind" : "meera",
+        text,
+        langCode: effectiveLangCode,
+      });
+    }
+
+    // C. OpenAI Speech API (TTS-1-HD)
+    if (!cloudAudioBuffer && providerConfig.openaiApiKey && providerName.includes("openai")) {
+      cloudAudioBuffer = await synthesizeOpenAISpeech({
+        apiKey: providerConfig.openaiApiKey,
+        voice: isMale ? "echo" : "nova",
+        text,
+      });
+    }
+
+    // D. Cartesia Sonic-3.5
+    if (!cloudAudioBuffer && providerConfig.cartesiaApiKey && providerName.includes("cartesia")) {
+      cloudAudioBuffer = await synthesizeCartesiaSpeech({
+        apiKey: providerConfig.cartesiaApiKey,
+        voiceId: dbVoice?.voiceId || "sonic-multilingual",
+        text,
+      });
+    }
+
+    if (cloudAudioBuffer) {
+      fs.writeFileSync(cacheFilePath, cloudAudioBuffer);
+      return new NextResponse(new Uint8Array(cloudAudioBuffer), {
+        status: 200,
+        headers: {
+          "Content-Type": "audio/mpeg",
+          "Content-Length": cloudAudioBuffer.length.toString(),
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+          "Pragma": "no-cache",
+          "Expires": "0",
+        },
+      });
+    }
+
+    // 7. Neural Synthesis with edge-tts (Exact Persona Voice + Tone Speed & Pitch)
     const edgeExecutable = path.join(process.cwd(), ".venv", "bin", "edge-tts");
     const hasEdgeTts = fs.existsSync(edgeExecutable);
 

@@ -52,9 +52,9 @@ export default function CampaignsPage() {
 
           <Link
             href="/dashboard/campaigns/create"
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-4 py-2 text-xs font-bold text-white shadow-md shadow-violet-500/20 active:scale-95 transition-all"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#11E97F] hover:bg-[#0ED071] px-4 py-2 text-xs font-extrabold text-[#0A0E1A] shadow-sm hover:shadow-md hover:shadow-[#11E97F]/30 active:scale-95 transition-all"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 stroke-[3]" />
             Create campaign
           </Link>
         </div>

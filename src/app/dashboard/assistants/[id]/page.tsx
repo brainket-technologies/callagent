@@ -201,150 +201,161 @@ function AssistantStudioContent({ params }: AssistantStudioProps) {
         <div className="space-y-1">
           <button
             onClick={() => setActiveTab("prompt")}
-            className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === "prompt"
-                ? "bg-neutral-100 text-neutral-900 font-bold"
-                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                ? "bg-emerald-50 text-emerald-950 border-l-[3px] border-[#11E97F] font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 font-medium"
             }`}
           >
-            <Bot className="h-4 w-4" />
+            <Bot className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "prompt" ? "text-emerald-700" : "text-slate-400"}`} />
             <span>Prompt</span>
+            {activeTab === "prompt" && <div className="ml-auto h-2 w-2 rounded-xs bg-[#11E97F] shadow-2xs" />}
           </button>
 
           <button
             onClick={() => setActiveTab("voice")}
-            className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === "voice"
-                ? "bg-neutral-100 text-neutral-900 font-bold"
-                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                ? "bg-emerald-50 text-emerald-950 border-l-[3px] border-[#11E97F] font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 font-medium"
             }`}
           >
-            <Volume2 className="h-4 w-4" />
+            <Volume2 className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "voice" ? "text-emerald-700" : "text-slate-400"}`} />
             <span>Voice</span>
+            {activeTab === "voice" && <div className="ml-auto h-2 w-2 rounded-xs bg-[#11E97F] shadow-2xs" />}
           </button>
 
           <button
             onClick={() => setActiveTab("variables")}
-            className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+            className={`flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === "variables"
-                ? "bg-neutral-100 text-neutral-900 font-bold"
-                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                ? "bg-emerald-50 text-emerald-950 border-l-[3px] border-[#11E97F] font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 font-medium"
             }`}
           >
             <span className="flex items-center gap-2.5">
-              <span className="font-mono text-xs">{"</>"}</span>
+              <span className={`font-mono text-xs ${activeTab === "variables" ? "text-emerald-700 font-bold" : "text-slate-400"}`}>{"</>"}</span>
               <span>Custom Variables</span>
             </span>
-            <span className="text-[10px] text-neutral-400">{variablesList.length}</span>
+            <span className="text-[10px] text-slate-400">{variablesList.length}</span>
+            {activeTab === "variables" && <div className="ml-1 h-2 w-2 rounded-xs bg-[#11E97F] shadow-2xs" />}
           </button>
 
           <button
             onClick={() => setActiveTab("knowledge_base")}
-            className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === "knowledge_base"
-                ? "bg-neutral-100 text-neutral-900 font-bold"
-                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                ? "bg-emerald-50 text-emerald-950 border-l-[3px] border-[#11E97F] font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 font-medium"
             }`}
           >
-            <Database className="h-4 w-4" />
+            <Database className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "knowledge_base" ? "text-emerald-700" : "text-slate-400"}`} />
             <span>Knowledge Base</span>
+            {activeTab === "knowledge_base" && <div className="ml-auto h-2 w-2 rounded-xs bg-[#11E97F] shadow-2xs" />}
           </button>
         </div>
 
         {/* CALL SETTINGS Group */}
         <div className="space-y-1">
-          <p className="px-2 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+          <p className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
             Call Settings
           </p>
           <button
             onClick={() => setActiveTab("call")}
-            className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === "call"
-                ? "bg-neutral-100 text-neutral-900 font-bold"
-                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                ? "bg-emerald-50 text-emerald-950 border-l-[3px] border-[#11E97F] font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 font-medium"
             }`}
           >
-            <PhoneCall className="h-4 w-4" />
+            <PhoneCall className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "call" ? "text-emerald-700" : "text-slate-400"}`} />
             <span>Call</span>
+            {activeTab === "call" && <div className="ml-auto h-2 w-2 rounded-xs bg-[#11E97F] shadow-2xs" />}
           </button>
 
           <button
             onClick={() => setActiveTab("chat")}
-            className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === "chat"
-                ? "bg-neutral-100 text-neutral-900 font-bold"
-                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                ? "bg-emerald-50 text-emerald-950 border-l-[3px] border-[#11E97F] font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 font-medium"
             }`}
           >
-            <MessageSquare className="h-4 w-4" />
+            <MessageSquare className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "chat" ? "text-emerald-700" : "text-slate-400"}`} />
             <span>Chat</span>
+            {activeTab === "chat" && <div className="ml-auto h-2 w-2 rounded-xs bg-[#11E97F] shadow-2xs" />}
           </button>
         </div>
 
         {/* ADVANCED SETTINGS Group */}
         <div className="space-y-1">
-          <p className="px-2 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+          <p className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
             Advanced Settings
           </p>
 
           <button
             onClick={() => setActiveTab("embed")}
-            className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === "embed"
-                ? "bg-neutral-100 text-neutral-900 font-bold"
-                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                ? "bg-emerald-50 text-emerald-950 border-l-[3px] border-[#11E97F] font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 font-medium"
             }`}
           >
-            <Layout className="h-4 w-4" />
+            <Layout className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "embed" ? "text-emerald-700" : "text-slate-400"}`} />
             <span>Embed & Widgets</span>
+            {activeTab === "embed" && <div className="ml-auto h-2 w-2 rounded-xs bg-[#11E97F] shadow-2xs" />}
           </button>
 
           <button
             onClick={() => setActiveTab("keyword_boosting")}
-            className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === "keyword_boosting"
-                ? "bg-neutral-100 text-neutral-900 font-bold"
-                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                ? "bg-emerald-50 text-emerald-950 border-l-[3px] border-[#11E97F] font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 font-medium"
             }`}
           >
-            <Radio className="h-4 w-4" />
+            <Radio className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "keyword_boosting" ? "text-emerald-700" : "text-slate-400"}`} />
             <span>Keyword Boosting</span>
+            {activeTab === "keyword_boosting" && <div className="ml-auto h-2 w-2 rounded-xs bg-[#11E97F] shadow-2xs" />}
           </button>
 
           <button
             onClick={() => setActiveTab("advanced_analysis")}
-            className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === "advanced_analysis"
-                ? "bg-neutral-100 text-neutral-900 font-bold"
-                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                ? "bg-emerald-50 text-emerald-950 border-l-[3px] border-[#11E97F] font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 font-medium"
             }`}
           >
-            <FileCode2 className="h-4 w-4" />
+            <FileCode2 className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "advanced_analysis" ? "text-emerald-700" : "text-slate-400"}`} />
             <span>Advanced Analysis</span>
+            {activeTab === "advanced_analysis" && <div className="ml-auto h-2 w-2 rounded-xs bg-[#11E97F] shadow-2xs" />}
           </button>
 
           <button
             onClick={() => setActiveTab("tools")}
-            className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === "tools"
-                ? "bg-neutral-100 text-neutral-900 font-bold"
-                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                ? "bg-emerald-50 text-emerald-950 border-l-[3px] border-[#11E97F] font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 font-medium"
             }`}
           >
-            <Wrench className="h-4 w-4" />
+            <Wrench className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "tools" ? "text-emerald-700" : "text-slate-400"}`} />
             <span>Tools</span>
+            {activeTab === "tools" && <div className="ml-auto h-2 w-2 rounded-xs bg-[#11E97F] shadow-2xs" />}
           </button>
 
           <button
             onClick={() => setActiveTab("event_subscription")}
-            className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === "event_subscription"
-                ? "bg-neutral-100 text-neutral-900 font-bold"
-                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                ? "bg-emerald-50 text-emerald-950 border-l-[3px] border-[#11E97F] font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 font-medium"
             }`}
           >
-            <Webhook className="h-4 w-4" />
+            <Webhook className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "event_subscription" ? "text-emerald-700" : "text-slate-400"}`} />
             <span>Event Subscription</span>
+            {activeTab === "event_subscription" && <div className="ml-auto h-2 w-2 rounded-xs bg-[#11E97F] shadow-2xs" />}
           </button>
         </div>
       </div>
@@ -377,9 +388,9 @@ function AssistantStudioContent({ params }: AssistantStudioProps) {
             <Button
               size="sm"
               onClick={handleSaveAll}
-              className="h-8 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs px-4"
+              className="h-8 font-extrabold text-xs px-4"
             >
-              <Save className="h-3.5 w-3.5 mr-1.5" />
+              <Save className="h-3.5 w-3.5 mr-1.5 stroke-[3]" />
               Save changes
             </Button>
           </div>

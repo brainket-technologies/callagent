@@ -4,6 +4,7 @@ export interface Workspace {
   id: string;
   name: string;
   slug: string;
+  walletBalance?: number | string;
   walletBalancePaise: number;
   currency: string;
   autoRechargeEnabled: boolean;

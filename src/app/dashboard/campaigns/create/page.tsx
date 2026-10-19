@@ -338,7 +338,7 @@ export default function CreateCampaignWizardPage() {
             <Button variant="outline" onClick={() => setStep(1)}>
               Back to Step 1
             </Button>
-            <Button onClick={handleLaunch} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8">
+            <Button onClick={handleLaunch} className="px-8 font-extrabold">
               Launch Campaign ➔
             </Button>
           </div>

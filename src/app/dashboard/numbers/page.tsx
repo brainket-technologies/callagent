@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 
 export default function NumbersPage() {
-  const { phoneNumbers, numberPools } = useStore();
+  const { phoneNumbers, numberPools, workspace } = useStore();
   const [localNumbers, setLocalNumbers] = useState(phoneNumbers);
 
   const [channel, setChannel] = useState<"phone" | "whatsapp">("phone");
@@ -94,6 +94,7 @@ export default function NumbersPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          workspaceId: workspace?.id,
           providerSlug: selectedProviderSlug,
           name: providerName,
           phoneNumber: phoneNumberInput || "+91 80 6558 " + Math.floor(1000 + Math.random() * 9000),
@@ -162,9 +163,9 @@ export default function NumbersPage() {
         {channel === "phone" && (
           <Button
             onClick={handleOpenAddModal}
-            className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold flex items-center gap-2 rounded-xl shadow-md shadow-violet-500/20 active:scale-95 transition-all"
+            className="text-xs h-10 px-4 rounded-xl flex items-center gap-2"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 stroke-[3]" />
             Add number
           </Button>
         )}
@@ -175,7 +176,7 @@ export default function NumbersPage() {
         <button
           onClick={() => setChannel("phone")}
           className={`rounded-lg px-4 py-1.5 transition ${
-            channel === "phone" ? "bg-white shadow text-neutral-900" : "text-neutral-500"
+            channel === "phone" ? "bg-white shadow text-neutral-900 font-bold" : "text-neutral-500"
           }`}
         >
           Phone
@@ -183,7 +184,7 @@ export default function NumbersPage() {
         <button
           onClick={() => setChannel("whatsapp")}
           className={`rounded-lg px-4 py-1.5 transition ${
-            channel === "whatsapp" ? "bg-white shadow text-neutral-900" : "text-neutral-500"
+            channel === "whatsapp" ? "bg-white shadow text-neutral-900 font-bold" : "text-neutral-500"
           }`}
         >
           WhatsApp
@@ -197,7 +198,7 @@ export default function NumbersPage() {
             <button
               onClick={() => setTab("numbers")}
               className={`pb-3 px-3 border-b-2 transition ${
-                tab === "numbers" ? "border-neutral-900 text-neutral-900" : "border-transparent text-neutral-400"
+                tab === "numbers" ? "border-[#11E97F] text-emerald-950 font-bold" : "border-transparent text-slate-400 hover:text-slate-700"
               }`}
             >
               All Numbers
@@ -205,7 +206,7 @@ export default function NumbersPage() {
             <button
               onClick={() => setTab("pools")}
               className={`pb-3 px-3 border-b-2 transition ${
-                tab === "pools" ? "border-neutral-900 text-neutral-900" : "border-transparent text-neutral-400"
+                tab === "pools" ? "border-[#11E97F] text-emerald-950 font-bold" : "border-transparent text-slate-400 hover:text-slate-700"
               }`}
             >
               Number Pools
@@ -440,7 +441,7 @@ export default function NumbersPage() {
               <Button
                 type="submit"
                 disabled={submitting}
-                className="bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs px-5 py-2 rounded-xl flex items-center gap-2"
+                className="text-xs px-5 py-2 rounded-xl flex items-center gap-2"
               >
                 {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
                 <span>{submitting ? "Connecting..." : "Save & Connect Trunk"}</span>
@@ -457,7 +458,7 @@ export default function NumbersPage() {
         maxWidth="md"
       >
         <div className="py-4 text-center space-y-4">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100">
             <MessageSquare className="h-8 w-8" />
           </div>
           <div>
@@ -471,7 +472,7 @@ export default function NumbersPage() {
               alert("Meta WhatsApp Business Cloud API OAuth initiated.");
               setWhatsappModalOpen(false);
             }}
-            className="w-full bg-neutral-900 hover:bg-neutral-800 text-white font-bold h-10"
+            className="w-full h-10 font-bold"
           >
             Setup WhatsApp Business Account
           </Button>

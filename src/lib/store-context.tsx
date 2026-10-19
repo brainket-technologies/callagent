@@ -61,6 +61,7 @@ interface StoreContextType {
   deleteAssistant: (id: string) => void;
   createCampaign: (campaign: Partial<Campaign>) => Campaign;
   toggleIntegration: (id: string) => void;
+  updateWorkspace: (updates: Partial<Workspace>) => void;
 }
 
 const StoreContext = createContext<StoreContextType | null>(null);
@@ -88,6 +89,51 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     costPaise: number;
     calleeNumber?: string;
   } | null>(null);
+
+  // Hydrate user's active workspace from PostgreSQL database session
+  useEffect(() => {
+    async function hydrateSession() {
+      try {
+        const res = await fetch("/api/auth/session");
+        const data = await res.json();
+        if (data.success && data.authenticated && data.workspace) {
+          const rawBal = data.workspace.walletBalance ?? (data.workspace.walletBalancePaise ? data.workspace.walletBalancePaise / 100 : 200);
+          const numBal = Number(rawBal);
+          setWorkspace((prev) => ({
+            ...prev,
+            id: data.workspace.id,
+            name: data.workspace.name,
+            walletBalance: numBal,
+            walletBalancePaise: Math.round(numBal * 100),
+            currency: data.workspace.currency ?? prev.currency,
+          }));
+
+          // Hydrate transactions from DB
+          const txRes = await fetch("/api/transactions").catch(() => null);
+          if (txRes) {
+            const txData = await txRes.json().catch(() => null);
+            if (txData?.success && Array.isArray(txData.transactions) && txData.transactions.length > 0) {
+              setTransactions(
+                txData.transactions.map((t: any) => ({
+                  id: t.txnNumber || t.id,
+                  workspaceId: t.workspaceId,
+                  type: t.type,
+                  amountPaise: t.amountPaise ?? Math.round(Number(t.amount || 0) * 100),
+                  balanceAfterPaise: t.balanceAfterPaise ?? Math.round(Number(t.balanceAfter || 0) * 100),
+                  currency: t.currency || "INR",
+                  description: t.serviceName,
+                  createdAt: t.createdAt,
+                }))
+              );
+            }
+          }
+        }
+      } catch (err) {
+        // Fallback to local
+      }
+    }
+    hydrateSession();
+  }, []);
 
   // Per-second real-time deduction ticker while call is active
   useEffect(() => {
@@ -129,15 +175,36 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [activeCall?.inProgress, workspace.walletBalancePaise]);
 
+  const sendWorkspaceLog = (logData: {
+    operation: string;
+    resource: string;
+    resourceId?: string;
+    resourceType?: string;
+    details?: any;
+  }) => {
+    try {
+      fetch("/api/workspace/logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(logData),
+      }).catch(() => {});
+    } catch {}
+  };
+
   const rechargeWallet = (amountPaise: number, gateway: "razorpay" | "stripe") => {
     const newBalance = workspace.walletBalancePaise + amountPaise;
+    const finalAmount = (amountPaise / 100).toFixed(2);
+    const finalBalance = (newBalance / 100).toFixed(2);
+    const txnNum = "TXN-" + Math.floor(100000 + Math.random() * 900000);
+
     setWorkspace((prev) => ({
       ...prev,
+      walletBalance: Number(finalBalance),
       walletBalancePaise: newBalance,
     }));
 
     const newTx: WalletTransaction = {
-      id: `tx-${Date.now()}`,
+      id: txnNum,
       workspaceId: workspace.id,
       type: "credit_recharge",
       amountPaise,
@@ -152,6 +219,29 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     setTransactions((prev) => [newTx, ...prev]);
     setRechargeModalOpen(false);
+
+    // Persist to PostgreSQL database
+    fetch("/api/transactions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        workspaceId: workspace.id,
+        type: "credit_recharge",
+        serviceName: `Wallet top-up via ${gateway === "razorpay" ? "Razorpay UPI" : "Stripe Card"}`,
+        amount: finalAmount,
+        balanceAfter: finalBalance,
+        billingUnit: "Wallet Recharge",
+        currency: workspace.currency || "INR",
+        gateway: gateway === "razorpay" ? "Razorpay UPI" : "Stripe",
+        status: "success",
+      }),
+    }).catch(() => {});
+
+    sendWorkspaceLog({
+      operation: "Recharged wallet",
+      resource: `Wallet +₹${finalAmount}`,
+      resourceType: "wallet",
+    });
   };
 
   const deductCallUsage = (durationSec: number, assistant: Assistant, calleeNumber: string) => {
@@ -277,28 +367,54 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
 
     setAssistants((prev) => [newAsst, ...prev]);
+
+    sendWorkspaceLog({
+      operation: "Created agent",
+      resource: newAsst.name,
+      resourceId: newAsst.id,
+      resourceType: "agent",
+    });
+
     return newAsst;
   };
 
   const updateAssistant = (id: string, updates: Partial<Assistant>) => {
+    const target = assistants.find((item) => item.id === id);
+    const agentName = updates.name || target?.name || "Agent";
+
     setAssistants((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...updates, updatedAt: new Date().toISOString() } : item))
     );
+
+    sendWorkspaceLog({
+      operation: "Edited agent",
+      resource: agentName,
+      resourceId: id,
+      resourceType: "agent",
+    });
   };
 
   const deleteAssistant = (id: string) => {
+    const target = assistants.find((item) => item.id === id);
     setAssistants((prev) => prev.filter((item) => item.id !== id));
+
+    sendWorkspaceLog({
+      operation: "Deleted agent",
+      resource: target?.name || "Agent",
+      resourceId: id,
+      resourceType: "agent",
+    });
   };
 
   const createCampaign = (data: Partial<Campaign>): Campaign => {
     const newCamp: Campaign = {
       id: `camp-${Date.now()}`,
       workspaceId: workspace.id,
-      assistantId: data.assistantId || assistants[0].id,
-      assistantName: data.assistantName || assistants[0].name,
+      assistantId: data.assistantId || assistants[0]?.id || "",
+      assistantName: data.assistantName || assistants[0]?.name || "Assistant",
       name: data.name || "Outbound Dialing Campaign",
       type: data.type || "outbound_call",
-      status: "running",
+      status: data.status || "running",
       totalContacts: data.totalContacts || 500,
       connectedCalls: 0,
       connectivityRate: 0,
@@ -308,8 +424,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
 
     setCampaigns((prev) => [newCamp, ...prev]);
+
+    sendWorkspaceLog({
+      operation: "Created campaign",
+      resource: newCamp.name,
+      resourceId: newCamp.id,
+      resourceType: "campaign",
+    });
+
     return newCamp;
   };
+
 
   const toggleIntegration = (id: string) => {
     setIntegrations((prev) =>
@@ -323,6 +448,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           : item
       )
     );
+  };
+
+  const updateWorkspace = (updates: Partial<Workspace>) => {
+    setWorkspace((prev) => ({ ...prev, ...updates }));
   };
 
   return (
@@ -354,6 +483,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         deleteAssistant,
         createCampaign,
         toggleIntegration,
+        updateWorkspace,
       }}
     >
       {children}

@@ -12,7 +12,7 @@ export interface VoiceSeedItem {
   provider: "Cartesia" | "ElevenLabs" | "Google" | "Sarvam" | "OpenAI";
   voiceId: string;
   model: string;
-  tag: "Most Used" | "Neutral";
+  tag: "Most Used" | "Neutral" | "Friendly & Human" | string;
   gender: "female" | "male";
   languages: string[]; // language codes to be resolved to system_languages.id UUIDs
   tone: string;       // tone key to be resolved to system_tones.id UUID
@@ -26,6 +26,22 @@ export const INDIAN_VOICES_SEED: VoiceSeedItem[] = [
   // ==========================================
   // 1. CARTESIA (Sonic-3.5)
   // ==========================================
+  {
+    slug: "firoz-sonic-35",
+    name: "Firoz (Sonic-3.5)",
+    cleanName: "Firoz",
+    provider: "Cartesia",
+    voiceId: "sonic-firoz-in-35",
+    model: "Sonic-3.5",
+    tag: "Friendly & Human",
+    gender: "male",
+    languages: ["hi-IN", "en-IN", "mr-IN", "gu-IN", "bn-IN", "pa-IN"],
+    tone: "casual-friendly-firoz",
+    description: "Casual, friendly, relaxed Indian male companion. Speaks natural Hindi/Hinglish like a real friend with spontaneous cadence and zero robotic feel.",
+    sysVoiceEn: "Rishi",
+    sysVoiceIndic: "Rishi",
+    sortOrder: 0,
+  },
   {
     slug: "riya-sonic-35",
     name: "Riya (Sonic-3.5)",
@@ -483,25 +499,30 @@ export async function seedAllVoices() {
     const primaryLang = v.languages[0] || "hi-IN";
     const isEnglishPrimary = primaryLang.startsWith("en");
 
-    // Natural sample text
+    // Natural human sample text (warm greetings, natural pauses, authentic conversational flow)
     const speechText = isEnglishPrimary
-      ? `Hello, I am ${v.cleanName}. I am ready to handle your business communications with ease.`
-      : `नमस्ते, मैं ${v.cleanName} हूँ। आपकी सभी व्यावसायिक कॉल्स को आसानी से संभालने के लिए मैं तैयार हूँ।`;
+      ? (isMale
+          ? `Hey there! How's it going? This is ${v.cleanName}... Let me know how I can help you out today!`
+          : `Hi there! Hope you're having a wonderful day! This is ${v.cleanName}... How can I assist you today?`)
+      : (isMale
+          ? `अरे नमस्ते! कैसे हैं आप? मैं ${v.cleanName} बोल रहा हूँ... बताइए, आज मैं आपकी क्या मदद कर सकता हूँ?`
+          : `नमस्ते जी! कैसे हैं आप? मैं ${v.cleanName} बात कर रही हूँ... आशा है आप अच्छे होंगे! बताइए, आज मैं आपकी क्या सहायता कर सकती हूँ?`);
 
     // Neural voice selection:
-    // Male: hi-IN-MadhurNeural / en-IN-PrabhatNeural at -22Hz deep baritone
-    // Female: hi-IN-SwaraNeural / en-IN-NeerjaNeural at +2Hz
+    // Male: hi-IN-MadhurNeural / en-IN-PrabhatNeural (authentic Indian natural cadence)
+    // Female: hi-IN-SwaraNeural / en-IN-NeerjaExpressiveNeural (natural expressive female)
     const neuralVoice = isMale
       ? (isEnglishPrimary ? "en-IN-PrabhatNeural" : "hi-IN-MadhurNeural")
-      : (isEnglishPrimary ? "en-IN-NeerjaNeural" : "hi-IN-SwaraNeural");
-    const pitch = isMale ? "-22Hz" : "+2Hz";
+      : (isEnglishPrimary ? "en-IN-NeerjaExpressiveNeural" : "hi-IN-SwaraNeural");
+    const pitch = "+0Hz";
+    const rate = "-1%";
 
     // Freshly generate neural audio
     if (hasEdgeTts) {
       try {
         const tempMp3 = path.join("/tmp", `${v.slug}-preview.mp3`);
         execSync(
-          `"${edgeExecutable}" --voice "${neuralVoice}" --pitch="${pitch}" --rate="+0%" --text "${speechText.replace(/"/g, '\\"')}" --write-media "${tempMp3}"`,
+          `"${edgeExecutable}" --voice "${neuralVoice}" --pitch="${pitch}" --rate="${rate}" --text "${speechText.replace(/"/g, '\\"')}" --write-media "${tempMp3}"`,
           { stdio: "ignore" }
         );
         execSync(`afconvert -f 'WAVE' -d 'LEI16@24000' "${tempMp3}" "${audioFilePath}"`, { stdio: "ignore" });

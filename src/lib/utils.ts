@@ -7,18 +7,24 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatCurrency(paise: number, currency = "INR"): string {
   const amount = paise / 100;
-  if (currency === "INR") {
-    return new Intl.NumberFormat("en-IN", {
+  const curr = (currency || "INR").toUpperCase();
+  try {
+    const localeMap: Record<string, string> = {
+      INR: "en-IN",
+      USD: "en-US",
+      EUR: "de-DE",
+      GBP: "en-GB",
+      AED: "en-AE",
+    };
+    const locale = localeMap[curr] || "en-US";
+    return new Intl.NumberFormat(locale, {
       style: "currency",
-      currency: "INR",
+      currency: curr,
       minimumFractionDigits: 2,
     }).format(amount);
+  } catch (e) {
+    return `${curr} ${amount.toFixed(2)}`;
   }
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  }).format(amount);
 }
 
 export function formatDuration(seconds: number): string {

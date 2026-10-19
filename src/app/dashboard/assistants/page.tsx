@@ -66,9 +66,9 @@ export default function AssistantsPage() {
 
         <Button
           onClick={() => setCreateModalOpen(true)}
-          className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold flex items-center gap-2 rounded-xl shadow-md shadow-violet-500/20 px-4 h-10 active:scale-95 transition-all"
+          className="text-xs h-10 px-4 rounded-xl flex items-center gap-2"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 stroke-[3]" />
           Create assistant
         </Button>
       </div>
@@ -82,7 +82,7 @@ export default function AssistantsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search assistants by name, prompt or purpose..."
-            className="w-full rounded-xl border border-neutral-200 bg-white pl-9 pr-4 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none shadow-sm"
+            className="w-full rounded-xl border border-neutral-200 bg-white pl-9 pr-4 py-2 text-sm text-neutral-900 focus:border-[#11E97F] focus:outline-none shadow-sm"
           />
         </div>
       </div>
@@ -92,13 +92,13 @@ export default function AssistantsPage() {
         {filteredAssistants.map((assistant) => (
           <div
             key={assistant.id}
-            className="group flex flex-col justify-between rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all"
+            className="group flex flex-col justify-between rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all"
           >
             <div>
               {/* Card Header */}
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-400 text-white shadow-md shadow-violet-500/20 ring-1 ring-white/20">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#11E97F] text-[#0A0E1A] font-extrabold shadow-sm ring-1 ring-black/5">
                     <Bot className="h-5 w-5" />
                   </div>
                   <div>

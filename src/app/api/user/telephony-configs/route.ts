@@ -3,17 +3,36 @@ import { db } from "@/db";
 import { userTelephonyConfigs, telephonyProviders } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const configs = await db
-      .select()
-      .from(userTelephonyConfigs)
-      .orderBy(desc(userTelephonyConfigs.createdAt));
+    const url = new URL(req.url);
+    const workspaceIdParam = url.searchParams.get("workspaceId");
+
+    let targetWorkspaceId = workspaceIdParam;
+    if (!targetWorkspaceId) {
+      const sessionCookie = req.cookies.get("voxera_session")?.value;
+      if (sessionCookie) {
+        try {
+          const parsed = JSON.parse(sessionCookie);
+          if (parsed.workspaceId) targetWorkspaceId = parsed.workspaceId;
+        } catch {}
+      }
+    }
+
+    let query = db.select().from(userTelephonyConfigs);
+
+    const configs = targetWorkspaceId
+      ? await query
+          .where(eq(userTelephonyConfigs.workspaceId, targetWorkspaceId))
+          .orderBy(desc(userTelephonyConfigs.createdAt))
+      : await query.orderBy(desc(userTelephonyConfigs.createdAt));
 
     return NextResponse.json({
       success: true,
       configs: configs.map((c) => ({
         id: c.id,
+        workspaceId: c.workspaceId,
+        userId: c.userId,
         providerSlug: c.providerSlug,
         name: c.name,
         phoneNumber: c.phoneNumber,
@@ -33,7 +52,19 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { providerSlug, name, phoneNumber, apiKey, authToken } = body;
+    let { providerSlug, name, phoneNumber, apiKey, authToken, workspaceId, userId } = body;
+
+    // Auto-resolve workspaceId and userId from session if not explicitly provided
+    if (!workspaceId || !userId) {
+      const sessionCookie = req.cookies.get("voxera_session")?.value;
+      if (sessionCookie) {
+        try {
+          const parsed = JSON.parse(sessionCookie);
+          if (!workspaceId && parsed.workspaceId) workspaceId = parsed.workspaceId;
+          if (!userId && parsed.userId) userId = parsed.userId;
+        } catch {}
+      }
+    }
 
     if (!providerSlug) {
       return NextResponse.json(
@@ -77,6 +108,8 @@ export async function POST(req: NextRequest) {
     const [saved] = await db
       .insert(userTelephonyConfigs)
       .values({
+        workspaceId: workspaceId || null,
+        userId: userId || null,
         providerSlug,
         name: name.trim(),
         phoneNumber: phoneNumber?.trim() || null,
@@ -91,6 +124,8 @@ export async function POST(req: NextRequest) {
       message: `${provider.name} credentials and number connected successfully!`,
       config: {
         id: saved.id,
+        workspaceId: saved.workspaceId,
+        userId: saved.userId,
         providerSlug: saved.providerSlug,
         name: saved.name,
         phoneNumber: saved.phoneNumber,

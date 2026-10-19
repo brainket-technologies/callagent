@@ -137,16 +137,17 @@ export function sanitizeSpeechText(text: string, voiceName: string, langCode?: s
     .replace(/[-—–]{2,}/g, ", ")
     .replace(/(?<=\s)-(?=\s)/g, ", ");
 
-  // 8. Preserve natural prosodic punctuation (?, !, ,, ।, .) for authentic human inflection & breathing cadence
+  // 8. Preserve natural prosodic punctuation (?, !, ,, ।, ..., .) for authentic human inflection & breathing cadence
   cleaned = cleaned
     .replace(/[;:]/g, ",")
     .replace(/!{2,}/g, "!")
     .replace(/\?{2,}/g, "?")
-    .replace(/\.{2,}/g, ".")
+    .replace(/\.{4,}/g, "...")
     .replace(/,{2,}/g, ",")
     .replace(/\s*,\s*/g, ", ")
     .replace(/\s*!\s*/g, "! ")
     .replace(/\s*\?\s*/g, "? ")
+    .replace(/\s*(\.\.\.)\s*/g, "... ")
     .replace(/\s*([।॥])\s*/g, "$1 ")
     .replace(/\s+/g, " ")
     .replace(/^[,.\s।]+/, "")
@@ -363,7 +364,17 @@ class UniversalVoiceEngine {
     // 3. Spoken Text with Dynamic Transliteration
     let spokenText = resolvedData?.spokenText || options.text || "";
     if (!spokenText) {
-      spokenText = `Hello, I am ${cleanName}. How may I help you today?`;
+      const isMaleVoice = (voiceGender || "").toLowerCase() === "male";
+      const isHindiLang = (langCode || "").toLowerCase().startsWith("hi");
+      if (isHindiLang) {
+        spokenText = isMaleVoice
+          ? `अरे नमस्ते! कैसे हैं आप? मैं ${cleanName} बात कर रहा हूँ... बताइए, आज मैं आपकी क्या मदद कर सकता हूँ?`
+          : `नमस्ते जी! कैसे हैं आप? मैं ${cleanName} बोल रही हूँ... आशा है आप अच्छे होंगे! बताइए, आज मैं आपकी क्या सहायता कर सकती हूँ?`;
+      } else {
+        spokenText = isMaleVoice
+          ? `Hey there! How are you doing today? This is ${cleanName}... Let me know how I can help you out!`
+          : `Hi there! Hope you are having a wonderful day! This is ${cleanName}... How can I assist you today?`;
+      }
     }
 
     spokenText = sanitizeSpeechText(spokenText, cleanName, langCode);

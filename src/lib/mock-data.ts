@@ -14,10 +14,11 @@ import {
 import { DEFAULT_STUDIO_PROMPT } from "./constants";
 
 export const initialWorkspace: Workspace = {
-  id: "e047345b-fde9-4d46-bc8d-e305035f51d7",
-  name: "Firoz Mohammad's Workspace",
-  slug: "firoz-workspace",
-  walletBalancePaise: 11996, // ₹119.96 (matches user's real Ringg badge!)
+  id: "workspace-initial",
+  name: "Workspace",
+  slug: "workspace",
+  walletBalance: 200.00,
+  walletBalancePaise: 20000, // ₹200.00
   currency: "INR",
   autoRechargeEnabled: true,
   autoRechargeThresholdPaise: 50000, // ₹500.00

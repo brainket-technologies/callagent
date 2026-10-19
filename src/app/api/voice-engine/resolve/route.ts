@@ -222,6 +222,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Resolve Spoken Script directly from the DB Tone attached to the voice!
+    const isMaleVoice = resolvedGender === "male";
     let spokenText = (text || "").trim();
     if (!spokenText) {
       if (langPrefix === "en") {
@@ -229,14 +230,16 @@ export async function POST(req: NextRequest) {
           matchedToneObj?.sampleTextEn ||
           matchedToneObj?.sampleText ||
           matchedLangObj?.sampleText ||
-          `Hello, I am ${cleanVoiceName}. How may I help you today?`;
+          (isMaleVoice
+            ? `Hey there! How's it going? This is ${cleanVoiceName}... Let me know how I can help you out today!`
+            : `Hi there! Hope you're having a wonderful day! This is ${cleanVoiceName}... How can I assist you today?`);
       } else {
         spokenText =
           matchedToneObj?.sampleText ||
           matchedLangObj?.sampleText ||
-          (isIndic
-            ? `नमस्ते, मैं ${effectiveLocalizedName} हूँ, आपकी सभी व्यावसायिक कॉल्स को आसानी से संभालने के लिए मैं तैयार हूँ`
-            : `Hello, I am ${cleanVoiceName}. I am ready to handle your business communications with ease`);
+          (isMaleVoice
+            ? `अरे नमस्ते! कैसे हैं आप? मैं ${effectiveLocalizedName} बोल रहा हूँ... बताइए, आज मैं आपकी क्या मदद कर सकता हूँ?`
+            : `नमस्ते जी! कैसे हैं आप? मैं ${effectiveLocalizedName} बात कर रही हूँ... आशा है आप अच्छे होंगे! बताइए, आज मैं आपकी क्या सहायता कर सकती हूँ?`);
       }
     }
 

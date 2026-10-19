@@ -10,11 +10,8 @@ import {
   FileText,
   Key,
   CreditCard,
-  MessageSquare,
-  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { BRAND_CONFIG } from "@/lib/brand-config";
 
 function SettingsSidebar() {
   const pathname = usePathname();
@@ -44,10 +41,10 @@ function SettingsSidebar() {
   ];
 
   return (
-    <aside className="w-56 shrink-0 border-r border-neutral-200/80 bg-white p-4 space-y-6 select-none">
+    <aside className="w-56 shrink-0 border-r border-slate-200/80 bg-white p-4 space-y-6 select-none">
       {settingsNav.map((sec, idx) => (
         <div key={idx} className="space-y-1">
-          <p className="px-3 pb-1 text-[10px] font-bold text-neutral-400 tracking-wider">
+          <p className="px-3 pb-1 text-[10px] font-bold text-slate-400 tracking-wider font-mono uppercase">
             {sec.group}
           </p>
           {sec.items.map((item) => {
@@ -58,36 +55,27 @@ function SettingsSidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors",
+                  "group flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-150",
                   isActive
-                    ? "bg-neutral-100 text-neutral-950 font-bold"
-                    : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                    ? "bg-emerald-50 text-emerald-950 border-l-[3px] border-[#11E97F] font-bold shadow-2xs"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 font-medium"
                 )}
               >
-                <Icon className={cn("h-4 w-4", isActive ? "text-neutral-900" : "text-neutral-400")} />
-                <span>{item.label}</span>
+                <Icon
+                  className={cn(
+                    "h-4 w-4 shrink-0 transition-colors",
+                    isActive ? "text-emerald-700" : "text-slate-400 group-hover:text-slate-700"
+                  )}
+                />
+                <span className="truncate">{item.label}</span>
+                {isActive && (
+                  <div className="ml-auto h-2 w-2 rounded-xs bg-[#11E97F] shadow-2xs" />
+                )}
               </Link>
             );
           })}
         </div>
       ))}
-
-      <div className="border-t border-neutral-100 pt-4 space-y-1">
-        <button
-          onClick={() => alert(`Contact support via email at ${BRAND_CONFIG.supportEmail}`)}
-          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-50 transition"
-        >
-          <MessageSquare className="h-4 w-4 text-neutral-400" />
-          <span>Contact us</span>
-        </button>
-        <Link
-          href="/"
-          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition"
-        >
-          <LogOut className="h-4 w-4" />
-          <span>Logout</span>
-        </Link>
-      </div>
     </aside>
   );
 }
@@ -108,4 +96,5 @@ export default function SettingsLayout({
         {children}
       </div>
     </div>
-  );}
+  );
+}
