@@ -47,3 +47,7 @@ next-env.d.ts
 *.mp3
 .venv/
 
+# database dumps & backups
+*.sql
+
+
